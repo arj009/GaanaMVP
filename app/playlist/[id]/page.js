@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -58,7 +59,7 @@ export default function PlaylistView() {
     return (
       <div style={{padding: '40px', textAlign: 'center', flex: 1}}>
         <h2 style={{color: 'white', marginBottom: '10px'}}>Playlist not found</h2>
-        <p style={{color: '#888', marginBottom: '20px'}}>This vibe queue doesn't exist or has expired. Let's create a new one!</p>
+        <p style={{color: '#888', marginBottom: '20px'}}>This vibe queue doesn&apos;t exist or has expired. Let&apos;s create a new one!</p>
         <button onClick={() => router.push('/')} style={{color: 'var(--accent-red)', padding: '10px 20px', border: '1px solid var(--accent-red)', borderRadius: '20px', background: 'transparent'}}>Return Home</button>
       </div>
     );
