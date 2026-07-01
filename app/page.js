@@ -11,6 +11,7 @@ export default function HomePage() {
   const [isSeedMode, setIsSeedMode] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [greeting, setGreeting] = useState("Good Day Aunkar ! 👋");
+  const [currentTime, setCurrentTime] = useState("9:41");
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -18,6 +19,20 @@ export default function HomePage() {
     else if (hour < 17) setGreeting("Good Afternoon Aunkar ! ☀️");
     else if (hour < 21) setGreeting("Good Evening Aunkar ! 🌆");
     else setGreeting("Good Night Aunkar ! 🌙");
+
+    const updateTime = () => {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      setCurrentTime(`${hours}:${minutes}`);
+    };
+    
+    updateTime();
+    const interval = setInterval(updateTime, 1000 * 60);
+    return () => clearInterval(interval);
   }, []);
 
   const handleFind = () => {
@@ -74,7 +89,7 @@ export default function HomePage() {
   return (
     <>
       <div className="status-bar">
-        <span>9:41</span>
+        <span>{currentTime}</span>
         <span>•••</span>
       </div>
 
@@ -100,7 +115,7 @@ export default function HomePage() {
               <span className="vibe-card-title">What are you in the mood for?</span>
               <span className="vibe-card-subtitle">Describe a vibe, or start from a song you love</span>
             </div>
-            <span className="new-badge">New</span>
+            <span className="sparkle-badge">✨ New</span>
           </div>
 
           <div className="vibe-input-row">

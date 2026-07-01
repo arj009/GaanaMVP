@@ -64,20 +64,46 @@
 }
 
 .vibe-card-subtitle {
-  color: #666;
   font-size: 9px;
   margin-top: 2px;
+  background: linear-gradient(270deg, #888888, #ffffff, #ff9e9e, #888888);
+  background-size: 300% 100%;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: color-roll 6s ease infinite;
 }
 
-.new-badge {
-  background-color: var(--accent-red);
+@keyframes color-roll {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.sparkle-badge {
+  background: linear-gradient(90deg, #c62828, #e53935, #ff5252, #c62828);
+  background-size: 300% 100%;
   color: white;
-  font-size: 8px;
-  padding: 2px 6px;
+  font-size: 7px;
+  font-weight: 700;
+  padding: 1px 4px;
   border-radius: 4px;
   position: absolute;
   top: 10px;
   right: 10px;
+  animation: sparkle-bg 4s linear infinite, pop-nudge 3s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(229, 57, 53, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+@keyframes sparkle-bg {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@keyframes pop-nudge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .vibe-input-row {
