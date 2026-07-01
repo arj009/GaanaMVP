@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Play, Pause, Home, Search, Library, User, ArrowRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { logEvent } from "@/lib/logger";
+import { triggerHaptic } from "@/lib/haptics";
 import "./page.css";
 
 function ResultsContent() {
@@ -125,6 +126,7 @@ function ResultsContent() {
   }, [playingIndex]);
 
   const togglePlay = (index) => {
+    triggerHaptic(30);
     if (playingIndex === index) {
       audioRef.current.pause();
       setPlayingIndex(-1);
@@ -139,6 +141,7 @@ function ResultsContent() {
   };
 
   const playQueue = () => {
+    triggerHaptic([30, 50]);
     if (isQueuePlaying) {
       audioRef.current.pause();
       setIsQueuePlaying(false);
@@ -163,7 +166,7 @@ function ResultsContent() {
       </div>
 
       <header className="result-header">
-        <button onClick={() => router.back()} className="back-btn">
+        <button onClick={() => { triggerHaptic(20); router.back(); }} className="back-btn">
           <ArrowLeft size={16} />
         </button>
         <span className="header-title">Vibe results</span>
@@ -187,6 +190,7 @@ function ResultsContent() {
             />
             <button 
               onClick={() => {
+                triggerHaptic([30, 50, 30]);
                 if (refinement.trim()) {
                   logEvent({ event: 'refined', vibeQuery: query, action: refinement });
                   router.push(`/results?q=${encodeURIComponent(query + " — " + refinement)}`);

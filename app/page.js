@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Bell, Home, Library, User, Music, Mic } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { triggerHaptic } from "@/lib/haptics";
 import "./page.css";
 
 export default function HomePage() {
@@ -37,10 +38,12 @@ export default function HomePage() {
 
   const handleFind = () => {
     if (!query.trim()) return;
+    triggerHaptic([30, 50, 30]); // success pattern
     router.push(`/results?q=${encodeURIComponent(query)}&mode=${isSeedMode ? 'seed' : 'text'}`);
   };
 
   const handleVoice = () => {
+    triggerHaptic(50);
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("Voice input is not supported in this browser. Try Chrome.");
       return;
@@ -134,6 +137,7 @@ export default function HomePage() {
             <button 
               className={`chip ${isSeedMode ? 'active' : ''}`}
               onClick={() => {
+                triggerHaptic(40);
                 setIsSeedMode(!isSeedMode);
                 if (!isSeedMode && query === "") {
                   setQuery("More like ");

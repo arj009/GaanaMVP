@@ -6,6 +6,7 @@ import { Music } from "lucide-react";
 import "./page.css";
 import { useState, useEffect, Suspense } from "react";
 import { logEvent, getSessionId } from "@/lib/logger";
+import { triggerHaptic } from "@/lib/haptics";
 
 function CompleteContent() {
   const router = useRouter();
@@ -35,16 +36,19 @@ function CompleteContent() {
   };
 
   const handleSameVibe = () => {
+    triggerHaptic([30, 50]);
     logEvent({ event: 'post_queue_action', action: 'same_vibe', vibeQuery: query });
     router.push(`/results?q=${encodeURIComponent(query)}`);
   };
 
   const handleVibeShift = () => {
+    triggerHaptic([50, 100, 50]);
     logEvent({ event: 'post_queue_action', action: 'vibe_shift', vibeQuery: query });
     router.push('/results?q=Surprise me with a completely different vibe');
   };
 
   const handleSavePlaylist = async () => {
+    triggerHaptic(30);
     setToastMessage("Saving...");
     try {
       const songs = JSON.parse(sessionStorage.getItem('vibe_queue') || "[]");
