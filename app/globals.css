@@ -182,3 +182,13 @@ input:focus {
 .justify-between { justify-content: space-between; }
 .gap-2 { gap: 8px; }
 .gap-1 { gap: 4px; }
+
+/* Page Transitions */
+main {
+  animation: pageEnter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

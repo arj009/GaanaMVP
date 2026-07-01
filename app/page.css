@@ -145,28 +145,47 @@
 }
 
 .chip {
-  background-color: var(--card-bg);
-  border: 0.5px solid var(--card-border);
+  background: linear-gradient(135deg, rgba(231, 44, 44, 0.08), rgba(255, 120, 50, 0.05));
+  border: 0.5px solid rgba(231, 44, 44, 0.2);
   border-radius: 20px;
-  padding: 4px 8px;
-  color: #666;
+  padding: 5px 10px;
+  color: #bbb;
   font-size: 8px;
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+}
+
+.chip:hover {
+  border-color: rgba(231, 44, 44, 0.4);
+  color: white;
+  box-shadow: 0 0 8px rgba(231, 44, 44, 0.15);
+  transform: translateY(-1px);
+}
+
+.chip:active {
+  transform: scale(0.96);
+  transition: transform 0.1s;
 }
 
 .chip.active {
   border-color: var(--accent-red);
   color: white;
+  background: linear-gradient(135deg, rgba(231, 44, 44, 0.15), rgba(255, 120, 50, 0.1));
+  box-shadow: 0 0 10px rgba(231, 44, 44, 0.2);
 }
 
 .chip.recording {
-  background-color: rgba(231, 44, 44, 0.2);
+  background: linear-gradient(135deg, rgba(231, 44, 44, 0.2), rgba(255, 80, 80, 0.15));
   border-color: var(--accent-red);
   color: var(--accent-red);
-  animation: pulse 1.5s infinite;
+  animation: chip-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes chip-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(231, 44, 44, 0.2); }
+  50% { box-shadow: 0 0 14px rgba(231, 44, 44, 0.4); }
 }
 
 @keyframes pulse {
@@ -176,7 +195,7 @@
 }
 
 .chip-icon {
-  color: inherit;
+  color: var(--accent-red);
 }
 
 .dimmed-sections {
