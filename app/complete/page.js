@@ -4,7 +4,7 @@ import { CheckCircle2, Home, Search, Library, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Music } from "lucide-react";
 import "./page.css";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { logEvent, getSessionId } from "@/lib/logger";
 
 function CompleteContent() {
@@ -13,6 +13,21 @@ function CompleteContent() {
   const query = searchParams.get('q') || "raw emotional but upbeat";
   
   const [toastMessage, setToastMessage] = useState("");
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      let hours = now.getHours() % 12;
+      hours = hours ? hours : 12;
+      let minutes = now.getMinutes();
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      setCurrentTime(`${hours}:${minutes}`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleGenerateAnother = () => {
     logEvent({ event: 'post_queue_action', action: 'generate_another', vibeQuery: query });
@@ -60,7 +75,7 @@ function CompleteContent() {
   return (
     <>
       <div className="status-bar">
-        <span>10:09</span>
+        <span>{currentTime}</span>
         <span>•••</span>
       </div>
 

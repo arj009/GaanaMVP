@@ -91,7 +91,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  animation: sparkle-bg 4s linear infinite, pop-nudge 3s ease-in-out infinite;
+  animation: sparkle-bg 4s linear infinite, shake-nudge 5s ease-in-out infinite;
   box-shadow: 0 0 6px rgba(229, 57, 53, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
@@ -101,9 +101,13 @@
   100% { background-position: 100% 50%; }
 }
 
-@keyframes pop-nudge {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+@keyframes shake-nudge {
+  0%, 84%, 100% { transform: translateX(0); }
+  86% { transform: translateX(-2px); }
+  88% { transform: translateX(2px); }
+  90% { transform: translateX(-2px); }
+  92% { transform: translateX(1px); }
+  94% { transform: translateX(0); }
 }
 
 .vibe-input-row {

@@ -17,6 +17,21 @@ function ResultsContent() {
   const [playingIndex, setPlayingIndex] = useState(-1);
   const [isQueuePlaying, setIsQueuePlaying] = useState(false);
   const [refinement, setRefinement] = useState("");
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      let hours = now.getHours() % 12;
+      hours = hours ? hours : 12;
+      let minutes = now.getMinutes();
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      setCurrentTime(`${hours}:${minutes}`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
   
   const audioRef = useRef(null);
 
@@ -143,7 +158,7 @@ function ResultsContent() {
   return (
     <>
       <div className="status-bar">
-        <span>9:42</span>
+        <span>{currentTime}</span>
         <span>•••</span>
       </div>
 
@@ -202,8 +217,26 @@ function ResultsContent() {
 
         <div className="song-list">
           {loading ? (
-            <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>
-               <div style={{animation: 'pulse 1.5s infinite'}}>Analyzing vibe and finding matches...</div>
+            <div className="skeleton-container">
+              <div className="skeleton-status">Analyzing your vibe...</div>
+              {[0, 1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="skeleton-card" style={{ animationDelay: `${i * 0.1}s` }}>
+                  <div className="skeleton-row">
+                    <div className="skeleton-thumb shimmer"></div>
+                    <div className="skeleton-info">
+                      <div className="skeleton-line shimmer" style={{ width: '65%' }}></div>
+                      <div className="skeleton-line shimmer" style={{ width: '40%', height: '6px' }}></div>
+                    </div>
+                    <div className="skeleton-play shimmer"></div>
+                  </div>
+                  <div className="skeleton-line shimmer" style={{ width: '90%', marginTop: '8px' }}></div>
+                  <div className="skeleton-tags">
+                    <div className="skeleton-tag shimmer"></div>
+                    <div className="skeleton-tag shimmer" style={{ width: '40px' }}></div>
+                    <div className="skeleton-tag shimmer" style={{ width: '50px' }}></div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             songs.map((song, i) => (
@@ -242,7 +275,27 @@ function ResultsContent() {
         </div>
       </main>
 
-
+      {playingIndex >= 0 && songs[playingIndex] && (
+        <div className="mini-player">
+          <div className="mini-player-info">
+            {songs[playingIndex].artwork_url ? (
+              <img src={songs[playingIndex].artwork_url} className="mini-player-thumb" alt="" />
+            ) : (
+              <div className={`mini-player-thumb gradient-${(playingIndex % 4) + 1}`}></div>
+            )}
+            <div className="mini-player-text">
+              <span className="mini-player-song">{songs[playingIndex].song}</span>
+              <span className="mini-player-artist">{songs[playingIndex].artist}</span>
+            </div>
+          </div>
+          <div className="mini-player-controls">
+            {isQueuePlaying && <span className="mini-player-counter">{playingIndex + 1}/{songs.length}</span>}
+            <button className="play-circle small" onClick={() => togglePlay(playingIndex)}>
+              <Pause size={10} fill="white" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <nav className="bottom-nav">
         <div className="nav-item active">
