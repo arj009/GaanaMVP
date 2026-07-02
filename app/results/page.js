@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Play, Pause, Home, Search, Library, User, ArrowRight } from "lucide-react";
+import { ArrowLeft, Play, Pause, Home, Search, Library, User, ArrowRight, RefreshCw } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { logEvent } from "@/lib/logger";
 import { triggerHaptic } from "@/lib/haptics";
@@ -19,6 +19,9 @@ function ResultsContent() {
   const [isQueuePlaying, setIsQueuePlaying] = useState(false);
   const [refinement, setRefinement] = useState("");
   const [currentTime, setCurrentTime] = useState("");
+  const [rejectedSongs, setRejectedSongs] = useState([]);
+  const [isRediscovering, setIsRediscovering] = useState(false);
+  const [showNudge, setShowNudge] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -62,6 +65,22 @@ function ResultsContent() {
     
     return () => { isMounted = false; };
   }, [query, searchParams]);
+
+  // Show one-time nudge when results first load
+  useEffect(() => {
+    if (!loading && songs.length > 0) {
+      const hasSeenNudge = localStorage.getItem('vibe_nudge_seen');
+      if (!hasSeenNudge) {
+        // Small delay so songs render first, then nudge slides in
+        const timer = setTimeout(() => setShowNudge(true), 800);
+        const autoHide = setTimeout(() => {
+          setShowNudge(false);
+          localStorage.setItem('vibe_nudge_seen', 'true');
+        }, 5000); // auto-dismiss after 5s
+        return () => { clearTimeout(timer); clearTimeout(autoHide); };
+      }
+    }
+  }, [loading, songs.length]);
 
   // Create audio element on mount, cleanup on unmount
   useEffect(() => {
@@ -156,6 +175,54 @@ function ResultsContent() {
     }
   };
 
+  const dismissSong = (index) => {
+    triggerHaptic(20);
+    const song = songs[index];
+    setRejectedSongs(prev => [...prev, song.song]);
+    
+    // Stop playback if this song is playing
+    if (playingIndex === index) {
+      audioRef.current.pause();
+      setPlayingIndex(-1);
+      setIsQueuePlaying(false);
+    }
+    
+    // Remove the song from the list with a brief delay for animation
+    setTimeout(() => {
+      setSongs(prev => prev.filter((_, i) => i !== index));
+      // Adjust playing index if needed
+      if (playingIndex > index) {
+        setPlayingIndex(prev => prev - 1);
+      }
+    }, 300);
+    
+    logEvent({ event: 'song_rejected', vibeQuery: query, songName: song.song, songArtist: song.artist });
+  };
+
+  const handleRediscover = async () => {
+    triggerHaptic([30, 50, 30]);
+    setIsRediscovering(true);
+    try {
+      const res = await fetch('/api/vibe-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: query + ` — NOT like: ${rejectedSongs.join(', ')}`,
+          mode: searchParams.get('mode') || 'text',
+          previousSongs: rejectedSongs
+        })
+      });
+      const data = await res.json();
+      setSongs(data.songs || []);
+      setRejectedSongs([]);
+      sessionStorage.setItem('vibe_queue', JSON.stringify(data.songs || []));
+      logEvent({ event: 'rediscovered', vibeQuery: query, rejectedCount: rejectedSongs.length });
+    } catch (err) {
+      console.error("Re-discover failed", err);
+    } finally {
+      setIsRediscovering(false);
+    }
+  };
 
 
   return (
@@ -219,6 +286,15 @@ function ResultsContent() {
           </div>
         </div>
 
+        {/* One-time nudge tooltip */}
+        {showNudge && (
+          <div className="nudge-tooltip" onClick={() => setShowNudge(false)}>
+            <span className="nudge-emoji">👎</span>
+            <span className="nudge-text">Don&apos;t vibe with a song? Tap the thumbs down to remove it. We&apos;ll learn your taste!</span>
+            <span className="nudge-dismiss">Got it</span>
+          </div>
+        )}
+
         <div className="song-list">
           {loading ? (
             <div className="skeleton-container">
@@ -244,7 +320,7 @@ function ResultsContent() {
             </div>
           ) : (
             songs.map((song, i) => (
-              <div id={`song-card-${i}`} key={i} className={`song-card ${playingIndex === i ? 'playing' : ''}`}>
+              <div id={`song-card-${i}`} key={i} className={`song-card ${playingIndex === i ? 'playing' : ''} ${rejectedSongs.includes(song.song) ? 'dismissed' : ''}`}>
                 <div className="song-top-row">
                   {song.artwork_url ? (
                     <img src={song.artwork_url} className="song-thumb" alt={song.song} />
@@ -252,12 +328,28 @@ function ResultsContent() {
                     <div className={`song-thumb gradient-${(i % 4) + 1}`}></div>
                   )}
                   <div className="song-info">
-                    <span className="song-name">{song.song}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span className="song-name">{song.song}</span>
+                      {song.vibe_match && (
+                        <span className={`vibe-dot ${song.vibe_match >= 9 ? 'perfect' : 'good'}`}
+                          title={`${song.vibe_match * 10}% vibe match`}>
+                          {song.vibe_match >= 9 ? '●' : '●'}
+                        </span>
+                      )}
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span className="song-artist">{song.artist}</span>
                       {song.is_fresh_find && <span className="fresh-find-badge">🌱 Fresh Find</span>}
+                      {song.vibe_match && (
+                        <span className={`vibe-badge ${song.vibe_match >= 9 ? 'perfect' : 'good'}`}>
+                          {song.vibe_match >= 9 ? 'Perfect match' : 'Good match'}
+                        </span>
+                      )}
                     </div>
                   </div>
+                  <button className="dismiss-btn" onClick={(e) => { e.stopPropagation(); dismissSong(i); }} title="Not my vibe">
+                    <span className="dismiss-emoji">👎</span>
+                  </button>
                   <button className="play-circle small" onClick={() => togglePlay(i)}>
                     {playingIndex === i ? <Pause size={10} fill="white" /> : <Play size={10} fill="white" />}
                   </button>
@@ -277,6 +369,27 @@ function ResultsContent() {
             ))
           )}
         </div>
+
+        {/* Re-discover banner — appears after 2+ rejected songs */}
+        {rejectedSongs.length >= 2 && (
+          <div className="rediscover-banner">
+            <div className="rediscover-info">
+              <span className="rediscover-count">{rejectedSongs.length} songs didn&apos;t fit your vibe</span>
+              <span className="rediscover-hint">We&apos;ll find better matches, avoiding those styles</span>
+            </div>
+            <button 
+              className="rediscover-btn" 
+              onClick={handleRediscover}
+              disabled={isRediscovering}
+            >
+              {isRediscovering ? (
+                <><RefreshCw size={12} className="spin" /> Finding...</>
+              ) : (
+                <>Re-discover ✦</>
+              )}
+            </button>
+          </div>
+        )}
       </main>
 
       {playingIndex >= 0 && songs[playingIndex] && (

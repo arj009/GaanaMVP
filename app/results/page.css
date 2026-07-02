@@ -434,3 +434,203 @@
   font-size: 8px;
   font-weight: 600;
 }
+
+/* ── Dismiss Button (Thumbs Down) ── */
+.dismiss-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.dismiss-emoji {
+  font-size: 14px;
+  opacity: 0.35;
+  transition: all 0.2s ease;
+  filter: grayscale(100%);
+}
+
+.dismiss-btn:hover .dismiss-emoji {
+  opacity: 1;
+  filter: grayscale(0%);
+  transform: scale(1.2);
+}
+
+.dismiss-btn:active .dismiss-emoji {
+  transform: scale(0.85);
+}
+
+/* Dismissed card fade-out */
+.song-card.dismissed {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.95);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+/* ── Vibe Confidence Dot ── */
+.vibe-dot {
+  font-size: 6px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.vibe-dot.perfect {
+  color: #2ecc71;
+  text-shadow: 0 0 4px rgba(46, 204, 113, 0.5);
+}
+
+.vibe-dot.good {
+  color: #f39c12;
+  text-shadow: 0 0 4px rgba(243, 156, 18, 0.4);
+}
+
+/* ── Vibe Match Badge ── */
+.vibe-badge {
+  font-size: 5.5px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.vibe-badge.perfect {
+  background: rgba(46, 204, 113, 0.12);
+  border: 0.5px solid rgba(46, 204, 113, 0.3);
+  color: #2ecc71;
+}
+
+.vibe-badge.good {
+  background: rgba(243, 156, 18, 0.12);
+  border: 0.5px solid rgba(243, 156, 18, 0.3);
+  color: #f39c12;
+}
+
+/* ── Re-discover Banner ── */
+.rediscover-banner {
+  margin: 10px 12px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, rgba(231, 44, 44, 0.08), rgba(231, 44, 44, 0.02));
+  border: 1px solid rgba(231, 44, 44, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  animation: fadeInUp 0.4s ease;
+}
+
+.rediscover-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rediscover-count {
+  color: white;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.rediscover-hint {
+  color: var(--text-muted);
+  font-size: 7px;
+}
+
+.rediscover-btn {
+  background: var(--accent-red);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.rediscover-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 2px 8px rgba(231, 44, 44, 0.3);
+}
+
+.rediscover-btn:active {
+  transform: scale(0.97);
+}
+
+.rediscover-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Spin animation for loading icon */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── Nudge Tooltip ── */
+.nudge-tooltip {
+  margin: 0 12px 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  animation: nudgeSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  position: relative;
+}
+
+@keyframes nudgeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.nudge-emoji {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.nudge-text {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 8px;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.nudge-dismiss {
+  color: var(--accent-red);
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
