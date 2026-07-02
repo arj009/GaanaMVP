@@ -63,6 +63,7 @@ Three API routes deployed as Vercel serverless functions:
 | Route | Purpose | External Calls |
 |:---|:---|:---|
 | `POST /api/vibe-search` | AI-powered song discovery | Groq (Recommender) → Pinecone (optional) → iTunes (audio enrichment) |
+| `POST /api/identify-song` | Audio Identification (Hum/Play) | Gemini 2.0 Flash (Multimodal Audio) |
 | `POST /api/log` | Event logging | Supabase |
 | `POST /api/playlist` | Save + share playlist | Supabase |
 
@@ -94,9 +95,9 @@ Three API routes deployed as Vercel serverless functions:
 ```
 
 **Why this pattern:**
-- Groq (Llama 3.3 70B): 30 RPM free, ultra-fast inference on LPU hardware, excellent JSON output
-- Gemini (2.0 Flash): Higher free RPM, reliable backup, handles overflow during demo sessions
-- Both are OpenAI-compatible, so the code is nearly identical for both
+- Groq (Llama 3.3 70B): 30 RPM free, ultra-fast inference on LPU hardware, excellent JSON output for text queries
+- Gemini (2.0 Flash): Multimodal capabilities (used natively for the "Hum or Play" audio ingestion feature), higher free RPM, reliable backup for text overflow
+- Both are OpenAI-compatible for text, so the fallback code is seamless
 
 **Rate limit budget:**
 ```

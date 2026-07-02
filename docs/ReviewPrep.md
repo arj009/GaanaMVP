@@ -5,8 +5,7 @@ This document captures every critical architectural discussion, design decision,
 ---
 
 ## 1. The One-Liner Pitch
-
-> "We built an AI-powered music discovery layer that lets users describe what they want in natural language — like 'monsoon evening chai melancholy' — and get 6 perfectly matched, playable songs in under 5 seconds. No algorithm history, no popularity bias, just pure intent."
+> "We built an AI-powered music discovery layer that lets users describe what they want in natural language — or hum a tune into their mic — and get 6 perfectly matched, playable songs in under 5 seconds. It learns in real-time via thumbs-down feedback, removing algorithm history and popularity bias for pure intent-driven discovery."
 
 ---
 
@@ -120,11 +119,13 @@ This document captures every critical architectural discussion, design decision,
 
 ---
 
-## 6. The Refinement Loop — Your Killer Feature
+## 6. The Refinement Loop & Implicit Learning — Your Killer Features
 
 **If the reviewer asks "What makes this different from just a better search?":**
 
-> "Search is one-shot. You type, you get results, you're done. Our refinement loop turns discovery into a conversation. After seeing 6 songs, the user can say 'Same vibe but more acoustic' or 'Less sad, more energetic.' The LLM takes the original intent PLUS the refinement and generates a completely new set. No playlist, no Trending tab, and no Made For You can do iterative intent refinement. Only an LLM can."
+> "Search is one-shot. You type, you get results, you're done. Our system turns discovery into a conversation using two feedback loops:
+> 1. **Real-time Rejection (Thumbs Down):** If the AI gets it wrong, the user hits 👎. The song is instantly removed, logged, and injected as a negative constraint for the next query. The AI learns *immediately*.
+> 2. **Conversational Refinement:** After seeing 6 songs, the user can say 'Same vibe but more acoustic' or 'Less sad, more energetic.' The LLM takes the original intent PLUS the refinement and generates a completely new set. No playlist, no Trending tab, and no Made For You can do iterative intent refinement. Only an LLM can."
 
 ---
 

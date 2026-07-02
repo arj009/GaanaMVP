@@ -28,12 +28,13 @@ Build an AI-powered music discovery web app where users describe a **vibe in nat
 ### Path A — Vibe Mode (Default)
 User types a mood/feeling: *"Something raw and emotional but upbeat, not Bollywood"*
 
-### Path B — Seed Song Mode
-User taps "♪ Start from a song" chip → placeholder changes → types: *"More like Tum Hi Ho but darker and more acoustic"*
-Backend auto-detects seed mode via regex patterns.
+### Path B — Seed Song Mode (Text or Audio)
+User taps "♪ Start from a song".
+- **Text:** Types *"More like Tum Hi Ho but darker"*
+- **Audio (Hum or Play):** User clicks the mic, hums or plays a song for 15s. Gemini multimodal AI identifies the song or vibe and auto-fills the search.
 
 ### Voice Input
-"🎤 Voice" chip → Web Speech API transcribes speech → fills the same text input → flows into Path A or B.
+"🎤 Voice" chip → Web Speech API transcribes speech → fills the text input.
 
 ---
 
@@ -53,6 +54,7 @@ Backend auto-detects seed mode via regex patterns.
 - Vibe Echo Box (user's query in red italic)
 - "Play as Vibe Queue" button (hands-free, plays all 6 sequentially)
 - 6 result cards: artwork, title, artist, play button, AI reason, 3 mood tags
+- **Real-Time Thumbs Down (👎):** Per-song rejection that logs `song_rejected` and removes it from the queue immediately.
 - Refine bar pinned above bottom nav
 - Bottom nav bar
 

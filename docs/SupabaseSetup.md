@@ -17,6 +17,7 @@ In your Supabase dashboard, go to the **SQL Editor** (the `</>` icon on the left
 
 ```sql
 -- Create table for tracking user behavior & search queries
+-- Events include: vibe_searched, queue_started, song_played, song_completed, queue_completed, refined, post_queue_action, song_rejected
 CREATE TABLE vibe_logs (
     id SERIAL PRIMARY KEY,
     session_id TEXT NOT NULL,

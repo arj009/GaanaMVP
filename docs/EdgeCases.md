@@ -8,10 +8,10 @@ This document outlines potential edge cases across the user experience, API inte
 | :--- | :--- | :--- |
 | **Empty Input** | User clicks "Find ✦" without typing anything. | Disable the button or show a subtle validation shake animation. Do not fire the API. |
 | **Gibberish / Non-Musical Input** | User types "asdfghjkl" or "I want a pizza". | **LLM Fallback:** Instruct the LLM in the system prompt to return a specific JSON flag or a polite fallback message if the intent cannot be mapped to music. The UI should display: *"I couldn't quite catch a vibe from that. Try describing a mood or naming a song."* |
+| **Audio ID Noisy/Unclear** | User hums but audio is noisy or silent during 15s recording. | **Graceful Vibe Fallback:** Gemini returns `identified: false`. The API detects the "vibe" of the audio instead (e.g., "noisy background with upbeat rhythm") or prompts: *"Couldn't catch that. Try singing louder."* |
 | **Extremely Long Input** | User pastes an entire paragraph. | **Frontend limit:** Cap the text input `maxLength` to 150 characters to prevent prompt bloat and keep the UI clean. |
 | **Unrecognized Seed Song** | User enters an extremely obscure song that iTunes cannot find. | If the iTunes API returns 0 results for the seed song, gracefully fallback to text mode using the user's modifier, or prompt the user: *"We couldn't find that specific song. Try another one or just describe the vibe."* |
-| **Voice Input Not Supported** | User is on a browser that doesn't support the Web Speech API (e.g., Firefox without flags). | **Feature Detection:** Check for `window.SpeechRecognition` or `window.webkitSpeechRecognition` on mount. If absent, hide the "🎤 Voice" chip entirely. |
-| **Voice Input Denied** | User blocks microphone access. | Catch the `NotAllowedError` and show a temporary toast: *"Microphone access denied. You can still type your vibe."* |
+| **Mic Access Denied** | User blocks microphone access for Voice or Hum/Play. | Catch the `NotAllowedError` and show a JS alert/toast instructing the user to allow mic access in browser settings. |
 
 ## 2. API & Network Edge Cases
 
