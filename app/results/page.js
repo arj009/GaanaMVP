@@ -66,19 +66,15 @@ function ResultsContent() {
     return () => { isMounted = false; };
   }, [query, searchParams]);
 
-  // Show one-time nudge when results first load
+  // Show nudge when results first load
   useEffect(() => {
     if (!loading && songs.length > 0) {
-      const hasSeenNudge = localStorage.getItem('vibe_nudge_seen');
-      if (!hasSeenNudge) {
-        // Small delay so songs render first, then nudge slides in
-        const timer = setTimeout(() => setShowNudge(true), 800);
-        const autoHide = setTimeout(() => {
-          setShowNudge(false);
-          localStorage.setItem('vibe_nudge_seen', 'true');
-        }, 9000); // auto-dismiss after 9s
-        return () => { clearTimeout(timer); clearTimeout(autoHide); };
-      }
+      // Small delay so songs render first, then nudge slides in
+      const timer = setTimeout(() => setShowNudge(true), 800);
+      const autoHide = setTimeout(() => {
+        setShowNudge(false);
+      }, 9000); // auto-dismiss after 9s
+      return () => { clearTimeout(timer); clearTimeout(autoHide); };
     }
   }, [loading, songs.length]);
 
@@ -286,7 +282,7 @@ function ResultsContent() {
           </div>
         </div>
 
-        {/* One-time nudge tooltip */}
+        {/* Nudge tooltip */}
         {showNudge && (
           <div className="nudge-tooltip" onClick={() => setShowNudge(false)}>
             <span className="nudge-emoji">👎</span>
@@ -317,6 +313,15 @@ function ResultsContent() {
                   </div>
                 </div>
               ))}
+            </div>
+          ) : songs.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">🔮</div>
+              <h3>The vibe is too elusive</h3>
+              <p>We couldn&apos;t find perfect matches for this specific mood. Try tweaking your description or making it a bit broader.</p>
+              <button className="empty-state-btn" onClick={() => router.push('/')}>
+                Try another vibe
+              </button>
             </div>
           ) : (
             songs.map((song, i) => (
