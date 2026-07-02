@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Bell, Home, Library, User, Music, Mic } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { triggerHaptic } from "@/lib/haptics";
 import "./page.css";
+
+// Feature Flag: Set to false to revert "Start from a song" to its original text-based behavior
+const USE_V2_AUDIO_SEED = true;
 
 export default function HomePage() {
   const router = useRouter();
@@ -13,6 +16,12 @@ export default function HomePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [greeting, setGreeting] = useState("Good Day Aunkar ! 👋");
   const [currentTime, setCurrentTime] = useState("9:41");
+  const [isListening, setIsListening] = useState(false);
+  const [listenCountdown, setListenCountdown] = useState(0);
+  const [isIdentifying, setIsIdentifying] = useState(false);
+  const [listenStatus, setListenStatus] = useState("");
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -89,6 +98,106 @@ export default function HomePage() {
     }
   };
 
+  const handleSongListen = async () => {
+    triggerHaptic(50);
+    
+    if (isListening) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        setIsListening(false);
+        setListenCountdown(0);
+        setIsIdentifying(true);
+        setListenStatus("Identifying your song...");
+
+        try {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const reader = new FileReader();
+          const base64Promise = new Promise((resolve) => {
+            reader.onloadend = () => {
+              resolve(reader.result.split(',')[1]);
+            };
+          });
+          reader.readAsDataURL(audioBlob);
+          const audioBase64 = await base64Promise;
+
+          const res = await fetch('/api/identify-song', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audioBase64, mimeType: 'audio/webm' })
+          });
+          const data = await res.json();
+
+          if (data.identified && data.song) {
+            triggerHaptic([30, 50, 30]);
+            setIsSeedMode(true);
+            setQuery(`More like ${data.song} by ${data.artist}`);
+            setListenStatus(`Found: ${data.song} by ${data.artist} ✓`);
+            setTimeout(() => setListenStatus(""), 3000);
+          } else if (data.vibe && data.vibe !== 'unclear') {
+            triggerHaptic([30, 30]);
+            setIsSeedMode(false);
+            setQuery(data.vibe);
+            setListenStatus("Couldn’t name it, but captured the vibe!");
+            setTimeout(() => setListenStatus(""), 3000);
+          } else {
+            setListenStatus("Couldn’t catch that. Try singing louder or hold closer to speaker.");
+            setTimeout(() => setListenStatus(""), 4000);
+          }
+        } catch (err) {
+          console.error("Identification failed:", err);
+          setListenStatus("Something went wrong. Try again.");
+          setTimeout(() => setListenStatus(""), 3000);
+        } finally {
+          setIsIdentifying(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsListening(true);
+      setListenStatus("Listening... sing or play a song");
+      
+      let countdown = 15;
+      setListenCountdown(countdown);
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        setListenCountdown(countdown);
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          if (mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+          }
+        }
+      }, 1000);
+
+    } catch (err) {
+      console.error("Mic access error:", err);
+      if (err.name === 'NotAllowedError') {
+        alert("Microphone access was blocked! Please allow mic access in your browser settings.");
+      } else {
+        alert("Could not access microphone: " + err.message);
+      }
+      setIsListening(false);
+    }
+  };
+
   return (
     <>
       <div className="status-bar">
@@ -134,24 +243,46 @@ export default function HomePage() {
           </div>
 
           <div className="vibe-chips">
-            <button 
-              className={`chip ${isSeedMode ? 'active' : ''}`}
-              onClick={() => {
-                triggerHaptic(40);
-                setIsSeedMode(!isSeedMode);
-                if (!isSeedMode && query === "") {
-                  setQuery("More like ");
-                } else if (isSeedMode && query === "More like ") {
-                  setQuery("");
-                }
-              }}
-            >
-              <Music size={12} className="chip-icon" /> Start from a song
-            </button>
+            {USE_V2_AUDIO_SEED ? (
+              <button 
+                className={`chip listen-chip ${isSeedMode ? 'active' : ''} ${isListening ? 'listening' : ''} ${isIdentifying ? 'identifying' : ''}`}
+                onClick={handleSongListen}
+              >
+                {isListening ? (
+                  <><span className="listen-pulse">●</span> {listenCountdown}s</>
+                ) : isIdentifying ? (
+                  <><span className="identify-spin">◌</span> Identifying...</>
+                ) : (
+                  <><Music size={12} className="chip-icon" /> Start from a song</>
+                )}
+              </button>
+            ) : (
+              <button 
+                className={`chip ${isSeedMode ? 'active' : ''}`}
+                onClick={() => {
+                  triggerHaptic(40);
+                  setIsSeedMode(!isSeedMode);
+                  if (!isSeedMode && query === "") {
+                    setQuery("More like ");
+                  } else if (isSeedMode && query === "More like ") {
+                    setQuery("");
+                  }
+                }}
+              >
+                <Music size={12} className="chip-icon" /> Start from a song
+              </button>
+            )}
             <button className={`chip ${isRecording ? 'recording' : ''}`} onClick={handleVoice}>
               <Mic size={12} className="chip-icon" /> Voice
             </button>
           </div>
+
+          {/* Listen status message */}
+          {listenStatus && (
+            <div className="listen-status">
+              {listenStatus}
+            </div>
+          )}
         </div>
 
         <div className="dimmed-sections">

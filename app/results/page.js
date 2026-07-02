@@ -76,7 +76,7 @@ function ResultsContent() {
         const autoHide = setTimeout(() => {
           setShowNudge(false);
           localStorage.setItem('vibe_nudge_seen', 'true');
-        }, 5000); // auto-dismiss after 5s
+        }, 9000); // auto-dismiss after 9s
         return () => { clearTimeout(timer); clearTimeout(autoHide); };
       }
     }
