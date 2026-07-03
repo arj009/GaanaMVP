@@ -255,7 +255,7 @@ export default function HomePage() {
       <header className="gaana-header">
         <div className="gaana-logo">
           <div className="gaana-logo-icon">
-            <Music size={14} />
+            <span style={{ fontWeight: 800, fontStyle: 'italic', fontSize: '18px', lineHeight: 1, transform: 'translateY(-2px)', paddingRight: '1px' }}>g</span>
           </div>
           Gaana
         </div>
