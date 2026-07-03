@@ -100,6 +100,14 @@ export default function HomePage() {
 
   const handleVoice = () => {
     triggerHaptic(50);
+    
+    if (isRecording) {
+      setIsRecording(false);
+      setListenCountdown(0);
+      setListenStatus("");
+      return;
+    }
+
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("Voice input is not supported in this browser. Try Chrome.");
       return;
@@ -108,39 +116,68 @@ export default function HomePage() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
-    // Set language to Indian English for better recognition of Hindi/English mix
     recognition.lang = 'en-IN';
-    recognition.continuous = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     
+    let accumulatedText = "";
+    let capturedText = "";
+    let isCountdownActive = true;
+
     recognition.onstart = () => {
-      console.log("Mic activated");
       setIsRecording(true);
+      if (!accumulatedText) setQuery("");
+      setListenStatus("🎤 Listening... Speak or sing your vibe");
     };
     
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setQuery(prev => prev + (prev ? " " : "") + transcript);
-      setIsRecording(false);
+      let fullTranscript = '';
+      for (let i = 0; i < event.results.length; i++) fullTranscript += event.results[i][0].transcript + ' ';
+      capturedText = (accumulatedText + ' ' + fullTranscript).trim();
+      setQuery(capturedText);
     };
     
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
       if (event.error === 'not-allowed') {
-        alert("Microphone access was blocked! Please click the camera/mic icon in your browser URL bar and 'Allow' access.");
-      } else if (event.error === 'no-speech') {
-        alert("I didn't hear anything. Please try speaking again.");
-      } else {
-        alert("Voice error: " + event.error);
+        alert("Microphone access blocked!");
+        isCountdownActive = false;
+        setIsRecording(false);
       }
-      setIsRecording(false);
     };
     
-    recognition.onend = () => setIsRecording(false);
+    recognition.onend = () => {
+      if (isCountdownActive) {
+        accumulatedText = capturedText;
+        try { recognition.start(); } catch (e) {}
+      } else {
+        setIsRecording(false);
+        setListenCountdown(0);
+        if (capturedText.trim().length > 0) {
+          setListenStatus("Captured! Tap Find ✦");
+          setTimeout(() => setListenStatus(""), 3000);
+        } else {
+          setListenStatus("Didn't catch that.");
+          setTimeout(() => setListenStatus(""), 3000);
+        }
+      }
+    };
     
     try {
       recognition.start();
+      let countdown = 15;
+      setListenCountdown(countdown);
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        setListenCountdown(countdown);
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          isCountdownActive = false;
+          recognition.stop();
+        }
+      }, 1000);
     } catch (e) {
       console.error(e);
+      isCountdownActive = false;
       setIsRecording(false);
     }
   };
@@ -158,7 +195,6 @@ export default function HomePage() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // 1. Setup Raw Audio Recorder (For device music fallback)
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -166,101 +202,57 @@ export default function HomePage() {
         if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
-      // 2. Setup Speech Recognition (For real-time lyrics)
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-IN';
-      recognition.continuous = true;
-      recognition.interimResults = true;
+      setIsListening(true);
+      setIsSeedMode(true);
+      setListenStatus("🎧 Listening to your device for 15s...");
 
-      let accumulatedText = "";
-      let capturedText = "";
-      let isCountdownActive = true;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-        setIsSeedMode(true);
-        if (!accumulatedText) setQuery("");
-        setListenStatus("🎤 Listening... Sing or play a song");
-      };
-
-      recognition.onresult = (event) => {
-        let fullTranscript = '';
-        for (let i = 0; i < event.results.length; i++) fullTranscript += event.results[i][0].transcript + ' ';
-        let rawText = (accumulatedText + ' ' + fullTranscript).trim();
-        capturedText = rawText;
-        setQuery(capturedText);
-      };
-
-      recognition.onerror = (event) => {
-        if (event.error === 'not-allowed') {
-          isCountdownActive = false;
-        }
-      };
-
-      recognition.onend = () => {
-        if (isCountdownActive) {
-          accumulatedText = capturedText;
-          try { recognition.start(); } catch (e) {}
-        }
-      };
-
-      // 3. Handle End of 15 Seconds
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach(track => track.stop());
         setIsListening(false);
         setListenCountdown(0);
 
-        if (capturedText.trim().length > 5) {
-          // Success: We caught decent lyrics via Speech API!
-          setListenStatus("Lyrics captured! Tap Find ✦ to discover songs");
-          setTimeout(() => setListenStatus(""), 4000);
-        } else {
-          // Fallback: Speech API failed or only caught noise (likely device music). Use Gemini.
-          setIsIdentifying(true);
-          setListenStatus("Identifying music...");
-          try {
-            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            const reader = new FileReader();
-            const base64Promise = new Promise((resolve) => {
-              reader.onloadend = () => resolve(reader.result.split(',')[1]);
-            });
-            reader.readAsDataURL(audioBlob);
-            const audioBase64 = await base64Promise;
+        setIsIdentifying(true);
+        setListenStatus("Identifying music...");
+        
+        try {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const reader = new FileReader();
+          const base64Promise = new Promise((resolve) => {
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+          });
+          reader.readAsDataURL(audioBlob);
+          const audioBase64 = await base64Promise;
 
-            const res = await fetch('/api/identify-song', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ audioBase64, mimeType: 'audio/webm' })
-            });
-            const data = await res.json();
+          const res = await fetch('/api/identify-song', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audioBase64, mimeType: 'audio/webm' })
+          });
+          const data = await res.json();
 
-            if (data.identified && data.song) {
-              triggerHaptic([30, 50, 30]);
-              setQuery(`${data.song} — ${data.artist}`);
-              setListenStatus(`Found: ${data.song} ✓`);
-              setTimeout(() => setListenStatus(""), 3000);
-            } else if (data.vibe && data.vibe !== 'unclear') {
-              setQuery(data.vibe);
-              setListenStatus("Couldn't name it exactly, but captured the vibe!");
-              setTimeout(() => setListenStatus(""), 3000);
-            } else {
-              setListenStatus("Couldn't catch that. Try playing louder.");
-              setTimeout(() => setListenStatus(""), 4000);
-            }
-          } catch (err) {
-            console.error("Gemini Fallback failed:", err);
-            setListenStatus("Couldn't identify. Try again.");
+          if (data.identified && data.song) {
+            triggerHaptic([30, 50, 30]);
+            setQuery(`${data.song} — ${data.artist}`);
+            setListenStatus(`Found: ${data.song} ✓`);
             setTimeout(() => setListenStatus(""), 3000);
-          } finally {
-            setIsIdentifying(false);
+          } else if (data.vibe && data.vibe !== 'unclear') {
+            setQuery(data.vibe);
+            setListenStatus("Couldn't name it exactly, but captured the vibe!");
+            setTimeout(() => setListenStatus(""), 3000);
+          } else {
+            setListenStatus("Couldn't identify. Try again.");
+            setTimeout(() => setListenStatus(""), 4000);
           }
+        } catch (err) {
+          console.error("Gemini Fallback failed:", err);
+          setListenStatus("Couldn't identify. Try again.");
+          setTimeout(() => setListenStatus(""), 3000);
+        } finally {
+          setIsIdentifying(false);
         }
       };
 
-      // Start everything
       mediaRecorder.start();
-      recognition.start();
 
       let countdown = 15;
       setListenCountdown(countdown);
@@ -269,9 +261,7 @@ export default function HomePage() {
         setListenCountdown(countdown);
         if (countdown <= 0) {
           clearInterval(countdownInterval);
-          isCountdownActive = false;
           if (mediaRecorder.state === 'recording') mediaRecorder.stop();
-          recognition.stop();
         }
       }, 1000);
 
