@@ -428,11 +428,13 @@
   background: rgba(255, 255, 255, 0.1);
   border: 0.5px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
-  padding: 4px 8px;
+  padding: 4px 0;
+  width: 58px;
   text-transform: uppercase;
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 3px;
   transition: all 0.2s ease;
 }
