@@ -182,7 +182,16 @@ export default function HomePage() {
       setListenStatus("🎤 Listening... Sing or play a song");
     };
 
+    let accumulatedText = "";
     let capturedText = "";
+    let isCountdownActive = true;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setIsSeedMode(true);
+      if (!accumulatedText) setQuery("");
+      setListenStatus("🎤 Listening... Sing or play a song");
+    };
 
     recognition.onresult = (event) => {
       let fullTranscript = '';
@@ -190,19 +199,14 @@ export default function HomePage() {
         fullTranscript += event.results[i][0].transcript + ' ';
       }
       
-      let rawText = fullTranscript.trim();
+      let rawText = (accumulatedText + ' ' + fullTranscript).trim();
       
-      // Aggressively remove consecutive duplicate words caused by singing/holding notes
-      // e.g. "kehte kehte kehte kisi" -> "kehte kisi"
       let cleanText = rawText;
       let prev;
       do {
         prev = cleanText;
-        // 3-word phrases (e.g. "kisi k liye kisi k liye")
         cleanText = cleanText.replace(/\b([\w']+\s+[\w']+\s+[\w']+)(?:\s+\1\b)+/gi, '$1');
-        // 2-word phrases
         cleanText = cleanText.replace(/\b([\w']+\s+[\w']+)(?:\s+\1\b)+/gi, '$1');
-        // 1-word phrases
         cleanText = cleanText.replace(/\b([\w']+)(?:\s+\1\b)+/gi, '$1');
       } while (cleanText !== prev);
       
@@ -211,33 +215,41 @@ export default function HomePage() {
     };
 
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
       if (event.error === 'not-allowed') {
         alert("Microphone access was blocked! Please allow mic access in your browser settings.");
-      } else if (event.error !== 'no-speech') {
-        setListenStatus("Voice error. Try again.");
-        setTimeout(() => setListenStatus(""), 3000);
+        isCountdownActive = false;
+        setIsListening(false);
+        setListenCountdown(0);
       }
-      setIsListening(false);
-      setListenCountdown(0);
+      // Ignore other errors like 'no-speech' and let onend restart it
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      setListenCountdown(0);
-      if (capturedText.trim()) {
-        setListenStatus("Lyrics captured! Tap Find ✦ to discover songs");
-        setTimeout(() => setListenStatus(""), 4000);
+      if (isCountdownActive) {
+        // Stopped prematurely due to silence or noise. Save progress and restart.
+        accumulatedText = capturedText;
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error("Restart error", e);
+        }
       } else {
-        setListenStatus("Couldn't catch anything. Try singing louder or holding closer.");
-        setTimeout(() => setListenStatus(""), 3000);
+        // Officially finished
+        setIsListening(false);
+        setListenCountdown(0);
+        if (capturedText.trim()) {
+          setListenStatus("Lyrics captured! Tap Find ✦ to discover songs");
+          setTimeout(() => setListenStatus(""), 4000);
+        } else {
+          setListenStatus("Couldn't catch anything. Try singing louder or holding closer.");
+          setTimeout(() => setListenStatus(""), 3000);
+        }
       }
     };
 
     try {
       recognition.start();
 
-      // 15 second countdown timer
       let countdown = 15;
       setListenCountdown(countdown);
       const countdownInterval = setInterval(() => {
@@ -245,12 +257,14 @@ export default function HomePage() {
         setListenCountdown(countdown);
         if (countdown <= 0) {
           clearInterval(countdownInterval);
+          isCountdownActive = false;
           recognition.stop();
           mediaRecorderRef.current = null;
         }
       }, 1000);
     } catch (e) {
       console.error("Recognition start error:", e);
+      isCountdownActive = false;
       setIsListening(false);
     }
   };
