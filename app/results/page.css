@@ -200,8 +200,8 @@
 }
 
 .song-reason {
-  color: var(--text-muted);
-  font-size: 8px;
+  color: rgba(255, 255, 255, 0.85); /* Much brighter text for readability */
+  font-size: 9px; /* Increased from 8px for better legibility */
   font-style: italic;
   margin-bottom: 8px;
   line-height: 1.4;
