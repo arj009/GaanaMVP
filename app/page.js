@@ -145,109 +145,129 @@ export default function HomePage() {
     }
   };
 
-  const handleSongListen = () => {
+  const handleSongListen = async () => {
     triggerHaptic(50);
     
     if (isListening) {
-      // Stop early if already listening
-      if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
-        mediaRecorderRef.current = null;
       }
-      setIsListening(false);
-      setListenCountdown(0);
-      setListenStatus("");
       return;
     }
 
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Speech recognition is not supported in this browser. Try Chrome.");
-      return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    mediaRecorderRef.current = recognition; // reuse ref for stop control
-
-    recognition.lang = 'en-IN';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setIsSeedMode(true);
-      setQuery("");
-      setListenStatus("🎤 Listening... Sing or play a song");
-    };
-
-    let accumulatedText = "";
-    let capturedText = "";
-    let isCountdownActive = true;
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setIsSeedMode(true);
-      if (!accumulatedText) setQuery("");
-      setListenStatus("🎤 Listening... Sing or play a song");
-    };
-
-    recognition.onresult = (event) => {
-      let fullTranscript = '';
-      for (let i = 0; i < event.results.length; i++) {
-        fullTranscript += event.results[i][0].transcript + ' ';
-      }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      let rawText = (accumulatedText + ' ' + fullTranscript).trim();
-      
-      let cleanText = rawText;
-      let prev;
-      do {
-        prev = cleanText;
-        cleanText = cleanText.replace(/\b([\w']+\s+[\w']+\s+[\w']+)(?:\s+\1\b)+/gi, '$1');
-        cleanText = cleanText.replace(/\b([\w']+\s+[\w']+)(?:\s+\1\b)+/gi, '$1');
-        cleanText = cleanText.replace(/\b([\w']+)(?:\s+\1\b)+/gi, '$1');
-      } while (cleanText !== prev);
-      
-      capturedText = cleanText;
-      setQuery(capturedText);
-    };
+      // 1. Setup Raw Audio Recorder (For device music fallback)
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
 
-    recognition.onerror = (event) => {
-      if (event.error === 'not-allowed') {
-        alert("Microphone access was blocked! Please allow mic access in your browser settings.");
-        isCountdownActive = false;
-        setIsListening(false);
-        setListenCountdown(0);
-      }
-      // Ignore other errors like 'no-speech' and let onend restart it
-    };
+      // 2. Setup Speech Recognition (For real-time lyrics)
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-IN';
+      recognition.continuous = true;
+      recognition.interimResults = true;
 
-    recognition.onend = () => {
-      if (isCountdownActive) {
-        // Stopped prematurely due to silence or noise. Save progress and restart.
-        accumulatedText = capturedText;
-        try {
-          recognition.start();
-        } catch (e) {
-          console.error("Restart error", e);
+      let accumulatedText = "";
+      let capturedText = "";
+      let isCountdownActive = true;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setIsSeedMode(true);
+        if (!accumulatedText) setQuery("");
+        setListenStatus("🎤 Listening... Sing or play a song");
+      };
+
+      recognition.onresult = (event) => {
+        let fullTranscript = '';
+        for (let i = 0; i < event.results.length; i++) fullTranscript += event.results[i][0].transcript + ' ';
+        let rawText = (accumulatedText + ' ' + fullTranscript).trim();
+        let cleanText = rawText;
+        let prev;
+        do {
+          prev = cleanText;
+          cleanText = cleanText.replace(/\b([\w']+\s+[\w']+\s+[\w']+)(?:\s+\1\b)+/gi, '$1');
+          cleanText = cleanText.replace(/\b([\w']+\s+[\w']+)(?:\s+\1\b)+/gi, '$1');
+          cleanText = cleanText.replace(/\b([\w']+)(?:\s+\1\b)+/gi, '$1');
+        } while (cleanText !== prev);
+        capturedText = cleanText;
+        setQuery(capturedText);
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error === 'not-allowed') {
+          isCountdownActive = false;
         }
-      } else {
-        // Officially finished
+      };
+
+      recognition.onend = () => {
+        if (isCountdownActive) {
+          accumulatedText = capturedText;
+          try { recognition.start(); } catch (e) {}
+        }
+      };
+
+      // 3. Handle End of 15 Seconds
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
         setIsListening(false);
         setListenCountdown(0);
+
         if (capturedText.trim()) {
+          // Success: We caught lyrics via Speech API!
           setListenStatus("Lyrics captured! Tap Find ✦ to discover songs");
           setTimeout(() => setListenStatus(""), 4000);
         } else {
-          setListenStatus("Couldn't catch anything. Try singing louder or holding closer.");
-          setTimeout(() => setListenStatus(""), 3000);
-        }
-      }
-    };
+          // Fallback: Speech API failed (likely device music). Use Gemini.
+          setIsIdentifying(true);
+          setListenStatus("Identifying music...");
+          try {
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const reader = new FileReader();
+            const base64Promise = new Promise((resolve) => {
+              reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            });
+            reader.readAsDataURL(audioBlob);
+            const audioBase64 = await base64Promise;
 
-    try {
+            const res = await fetch('/api/identify-song', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ audioBase64, mimeType: 'audio/webm' })
+            });
+            const data = await res.json();
+
+            if (data.identified && data.song) {
+              triggerHaptic([30, 50, 30]);
+              setQuery(`${data.song} — ${data.artist}`);
+              setListenStatus(`Found: ${data.song} ✓`);
+              setTimeout(() => setListenStatus(""), 3000);
+            } else if (data.vibe && data.vibe !== 'unclear') {
+              setQuery(data.vibe);
+              setListenStatus("Couldn't name it exactly, but captured the vibe!");
+              setTimeout(() => setListenStatus(""), 3000);
+            } else {
+              setListenStatus("Couldn't catch that. Try playing louder.");
+              setTimeout(() => setListenStatus(""), 4000);
+            }
+          } catch (err) {
+            console.error("Gemini Fallback failed:", err);
+            setListenStatus("Couldn't identify. Try again.");
+            setTimeout(() => setListenStatus(""), 3000);
+          } finally {
+            setIsIdentifying(false);
+          }
+        }
+      };
+
+      // Start everything
+      mediaRecorder.start();
       recognition.start();
 
       let countdown = 15;
@@ -258,13 +278,14 @@ export default function HomePage() {
         if (countdown <= 0) {
           clearInterval(countdownInterval);
           isCountdownActive = false;
+          if (mediaRecorder.state === 'recording') mediaRecorder.stop();
           recognition.stop();
-          mediaRecorderRef.current = null;
         }
       }, 1000);
-    } catch (e) {
-      console.error("Recognition start error:", e);
-      isCountdownActive = false;
+
+    } catch (err) {
+      console.error("Mic error:", err);
+      alert("Microphone access was blocked or unavailable.");
       setIsListening(false);
     }
   };
