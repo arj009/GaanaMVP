@@ -14,7 +14,7 @@ export default function HomePage() {
   const [query, setQuery] = useState("");
   const [isSeedMode, setIsSeedMode] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [greeting, setGreeting] = useState("Hey Good Day ! 👋");
+  const [greeting, setGreeting] = useState("Hey, Good Day ! 👋");
   const [currentTime, setCurrentTime] = useState("9:41");
   const [isListening, setIsListening] = useState(false);
   const [listenCountdown, setListenCountdown] = useState(0);
@@ -34,10 +34,10 @@ export default function HomePage() {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Hey Good Morning ! 🌅");
-    else if (hour < 17) setGreeting("Hey Good Afternoon ! ☀️");
-    else if (hour < 21) setGreeting("Hey Good Evening ! 🌆");
-    else setGreeting("Hey Good Night ! 🌙");
+    if (hour < 12) setGreeting("Hey, Good Morning ! 🌅");
+    else if (hour < 17) setGreeting("Hey, Good Afternoon ! ☀️");
+    else if (hour < 21) setGreeting("Hey, Good Evening ! 🌆");
+    else setGreeting("Hey, Good Night ! 🌙");
 
     const TRENDING_POOL = ["mahooqa", "sadi sun", "boom shaka", "on the floor", "ban ja tu", "rasputin", "chaleya", "tum hi ho", "kesariya", "jhoome jo pathaan", "apna bana le", "channa mereya", "saami saami", "maan meri jaan", "jalebi baby"];
     const HITS_RELOADED_POOL = [
