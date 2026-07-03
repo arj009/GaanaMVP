@@ -35,9 +35,9 @@ Your job: Identify the song.
 IMPORTANT RULES:
 - If a song is playing from a speaker, analyze the melody, beat, instruments, and vocals to identify the track. You have deep knowledge of acoustics and music.
 - If a human is singing/humming, pay very close attention to the LYRICS and MELODY to match it to known Bollywood, Hindi, Punjabi, or English songs.
-- If you hear someone speaking a song name (e.g. "Tum Hi Ho" or "Shape of You"), identify that song directly.
-- If you can identify the song, return ONLY a JSON object: {"identified": true, "song": "Song Name", "artist": "Artist Name", "confidence": "high/medium/low"}
-- If you can hear music but can't identify it confidently, describe the vibe: {"identified": false, "vibe": "describe the mood, tempo, genre, instruments you hear", "confidence": "low"}
+- If you can confidently identify the song, return ONLY a JSON object: {"identified": true, "song": "Song Name", "artist": "Artist Name", "confidence": "high/medium/low"}
+- If you CANNOT identify the exact song name, but you hear vocals, TRANSCRIBE THE LYRICS EXACTLY as they are sung. Return: {"identified": false, "vibe": "the transcribed lyrics you heard", "confidence": "low"}
+- If there are absolutely no vocals and you cannot identify it, describe the musical vibe: {"identified": false, "vibe": "upbeat acoustic guitar with fast tabla beats", "confidence": "low"}
 - If the audio is silent or just noise: {"identified": false, "vibe": "unclear", "confidence": "none"}
 - Return ONLY the raw JSON. No markdown, no explanation.`
       }

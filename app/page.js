@@ -120,20 +120,18 @@ export default function HomePage() {
     recognition.continuous = true;
     recognition.interimResults = true;
     
-    let accumulatedText = "";
     let capturedText = "";
-    let isCountdownActive = true;
 
     recognition.onstart = () => {
       setIsRecording(true);
-      if (!accumulatedText) setQuery("");
+      setQuery("");
       setListenStatus("🎤 Listening... Speak or sing your vibe");
     };
     
     recognition.onresult = (event) => {
       let fullTranscript = '';
       for (let i = 0; i < event.results.length; i++) fullTranscript += event.results[i][0].transcript + ' ';
-      capturedText = (accumulatedText + ' ' + fullTranscript).trim();
+      capturedText = fullTranscript.trim();
       setQuery(capturedText);
     };
     
@@ -146,38 +144,32 @@ export default function HomePage() {
     };
     
     recognition.onend = () => {
-      if (isCountdownActive) {
-        accumulatedText = capturedText;
-        try { recognition.start(); } catch (e) {}
+      setIsRecording(false);
+      if (countdownIntervalRef) clearInterval(countdownIntervalRef);
+      if (capturedText.trim().length > 0) {
+        setListenStatus("Captured! Tap Find ✦");
+        setTimeout(() => setListenStatus(""), 3000);
       } else {
-        setIsRecording(false);
-        setListenCountdown(0);
-        if (capturedText.trim().length > 0) {
-          setListenStatus("Captured! Tap Find ✦");
-          setTimeout(() => setListenStatus(""), 3000);
-        } else {
-          setListenStatus("Didn't catch that.");
-          setTimeout(() => setListenStatus(""), 3000);
-        }
+        setListenStatus("Didn't catch that.");
+        setTimeout(() => setListenStatus(""), 3000);
       }
     };
     
+    let countdownIntervalRef;
     try {
       recognition.start();
       let countdown = 15;
       setListenCountdown(countdown);
-      const countdownInterval = setInterval(() => {
+      countdownIntervalRef = setInterval(() => {
         countdown--;
         setListenCountdown(countdown);
         if (countdown <= 0) {
-          clearInterval(countdownInterval);
-          isCountdownActive = false;
+          clearInterval(countdownIntervalRef);
           recognition.stop();
         }
       }, 1000);
     } catch (e) {
       console.error(e);
-      isCountdownActive = false;
       setIsRecording(false);
     }
   };
