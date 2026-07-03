@@ -101,8 +101,15 @@ export default function HomePage() {
   const handleVoice = () => {
     triggerHaptic(50);
     
-    if (isRecording) {
+    // Strict cleanup: kill any existing mic listener before starting or toggling
+    if (mediaRecorderRef.current && typeof mediaRecorderRef.current.stop === 'function') {
+      try { mediaRecorderRef.current.stop(); } catch(e) {}
+      mediaRecorderRef.current = null;
+    }
+    
+    if (isRecording || isListening) {
       setIsRecording(false);
+      setIsListening(false);
       setListenCountdown(0);
       setListenStatus("");
       return;
@@ -115,10 +122,11 @@ export default function HomePage() {
     
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+    mediaRecorderRef.current = recognition; // Store ref to allow stopping
+
     recognition.lang = 'en-IN';
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = true; // Real-time feedback enabled, bug handled by intelligent loop
     
     let capturedText = "";
 
@@ -130,7 +138,15 @@ export default function HomePage() {
     
     recognition.onresult = (event) => {
       let fullTranscript = '';
-      for (let i = 0; i < event.results.length; i++) fullTranscript += event.results[i][0].transcript + ' ';
+      for (let i = 0; i < event.results.length; i++) {
+        let text = event.results[i][0].transcript.trim();
+        // Fix for Chrome bug: sometimes the newest result includes the previous results' text
+        if (fullTranscript && text.toLowerCase().startsWith(fullTranscript.toLowerCase().trim())) {
+          fullTranscript = text; // Overwrite because the new result contains the whole history
+        } else {
+          fullTranscript += (fullTranscript ? ' ' : '') + text; // Append normally
+        }
+      }
       capturedText = fullTranscript.trim();
       setQuery(capturedText);
     };
@@ -138,7 +154,6 @@ export default function HomePage() {
     recognition.onerror = (event) => {
       if (event.error === 'not-allowed') {
         alert("Microphone access blocked!");
-        isCountdownActive = false;
         setIsRecording(false);
       }
     };
