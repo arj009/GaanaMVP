@@ -16,7 +16,7 @@ export async function POST(req) {
 
     // 2. Run LLM recommendation and Pinecone search in parallel
     const [llmResults, pineconeResults] = await Promise.allSettled([
-      recommendSongs(searchQuery, previousSongs || []),
+      recommendSongs(searchQuery, previousSongs || [], mode),
       searchSimilarSongs(searchQuery, 8)
     ]);
 
