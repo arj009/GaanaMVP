@@ -3,7 +3,7 @@ import { recommendSongs } from "@/lib/llm";
 import { enrichWithiTunes } from "@/lib/itunes";
 import { searchSimilarSongs } from "@/lib/pinecone";
 
-const VIBE_MATCH_THRESHOLD = 5; // Lowered to prevent strict filtering of simple moods
+const VIBE_MATCH_THRESHOLD = 7; // Minimum vibe_match score to include a song
 const PINECONE_MERGE_THRESHOLD = 0.6; // Only merge high-confidence Pinecone results
 
 export async function POST(req) {
