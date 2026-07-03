@@ -173,7 +173,7 @@ export default function HomePage() {
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    let finalTranscript = '';
+
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -182,17 +182,28 @@ export default function HomePage() {
       setListenStatus("🎤 Listening... Sing or play a song");
     };
 
+    let capturedText = "";
+
     recognition.onresult = (event) => {
-      let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript + ' ';
-        } else {
-          interim += event.results[i][0].transcript;
-        }
+      let fullTranscript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript + ' ';
       }
-      // Show real-time lyrics in the search box
-      setQuery((finalTranscript + interim).trim());
+      
+      let rawText = fullTranscript.trim();
+      
+      // Aggressively remove consecutive duplicate words caused by singing/holding notes
+      // e.g. "kehte kehte kehte kisi" -> "kehte kisi"
+      let cleanText = rawText;
+      let prev;
+      do {
+        prev = cleanText;
+        // Matches any word followed by itself one or more times
+        cleanText = cleanText.replace(/\b(\w+)(?:\s+\1\b)+/gi, '$1');
+      } while (cleanText !== prev);
+      
+      capturedText = cleanText;
+      setQuery(capturedText);
     };
 
     recognition.onerror = (event) => {
@@ -210,7 +221,7 @@ export default function HomePage() {
     recognition.onend = () => {
       setIsListening(false);
       setListenCountdown(0);
-      if (finalTranscript.trim()) {
+      if (capturedText.trim()) {
         setListenStatus("Lyrics captured! Tap Find ✦ to discover songs");
         setTimeout(() => setListenStatus(""), 4000);
       } else {
