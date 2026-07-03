@@ -26,12 +26,16 @@ export async function POST(req) {
       },
       {
         text: `Listen to this audio carefully. Someone is either:
-1. Singing or humming a song
+1. Singing or humming lyrics of a song
 2. Playing a song from a speaker/phone
+3. Speaking a song name out loud
 
 Your job: Identify the song.
 
-Rules:
+IMPORTANT RULES:
+- Pay very close attention to the LYRICS being sung. Match them to known Bollywood, Hindi, Punjabi, or English songs.
+- Even if the singing is off-key or partial, try to match the lyrics to a real song.
+- If you hear someone speaking a song name (e.g. "Tum Hi Ho" or "Shape of You"), identify that song directly.
 - If you can identify the song, return ONLY a JSON object: {"identified": true, "song": "Song Name", "artist": "Artist Name", "confidence": "high/medium/low"}
 - If you can hear music but can't identify it confidently, describe the vibe: {"identified": false, "vibe": "describe the mood, tempo, genre, instruments you hear", "confidence": "low"}
 - If the audio is silent or just noise: {"identified": false, "vibe": "unclear", "confidence": "none"}

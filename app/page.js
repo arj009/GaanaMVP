@@ -195,7 +195,7 @@ export default function HomePage() {
           if (data.identified && data.song) {
             triggerHaptic([30, 50, 30]);
             setIsSeedMode(true);
-            setQuery(`More like ${data.song} by ${data.artist}`);
+            setQuery(`${data.song} — ${data.artist}`);
             setListenStatus(`Found: ${data.song} by ${data.artist} ✓`);
             setTimeout(() => setListenStatus(""), 3000);
           } else if (data.vibe && data.vibe !== 'unclear') {
