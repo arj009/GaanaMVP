@@ -198,8 +198,12 @@ export default function HomePage() {
       let prev;
       do {
         prev = cleanText;
-        // Matches any word followed by itself one or more times
-        cleanText = cleanText.replace(/\b(\w+)(?:\s+\1\b)+/gi, '$1');
+        // 3-word phrases (e.g. "kisi k liye kisi k liye")
+        cleanText = cleanText.replace(/\b([\w']+\s+[\w']+\s+[\w']+)(?:\s+\1\b)+/gi, '$1');
+        // 2-word phrases
+        cleanText = cleanText.replace(/\b([\w']+\s+[\w']+)(?:\s+\1\b)+/gi, '$1');
+        // 1-word phrases
+        cleanText = cleanText.replace(/\b([\w']+)(?:\s+\1\b)+/gi, '$1');
       } while (cleanText !== prev);
       
       capturedText = cleanText;
