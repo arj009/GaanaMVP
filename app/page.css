@@ -470,6 +470,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .thumb {
@@ -484,14 +485,23 @@
 .color-4 { background: linear-gradient(135deg, #F09819, #EDDE5D); }
 
 .card-title {
-  color: #666;
+  color: white;
   font-size: 8px;
   font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .card-subtitle {
-  color: #444;
+  color: #aaa;
   font-size: 7px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .grid-3col {

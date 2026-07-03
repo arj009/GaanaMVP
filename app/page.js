@@ -28,6 +28,9 @@ export default function HomePage() {
     { title: "90s Romance", subtitle: "Udit Narayan & Alka", color: "color-4" },
     { title: "Retro Party", subtitle: "Kishore Kumar Hits", color: "color-3" }
   ]);
+  const [monsoonMagic, setMonsoonMagic] = useState([]);
+  const [julyTopArtists, setJulyTopArtists] = useState([]);
+  const [hitsByEras, setHitsByEras] = useState([]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -45,8 +48,34 @@ export default function HomePage() {
       { title: "Classic Duets", subtitle: "Lata & Rafi", color: "color-3" },
       { title: "Golden Era", subtitle: "Mukesh & Asha", color: "color-4" },
     ];
+    const MONSOON_POOL = [
+      { title: "Rim Jhim gire" },
+      { title: "Tip tip barsa" },
+      { title: "Baarish" },
+      { title: "Bheegi sari" },
+      { title: "Tum hi ho" }
+    ];
+    const JULY_ARTISTS_POOL = [
+      { title: "Arijit Singh", image: "https://i.scdn.co/image/ab6761610000e5eb0261696c5df3be99da6ed3f3" },
+      { title: "Pritam", image: "https://i.scdn.co/image/ab6761610000e5ebcb6926f44f620555ba444fca" },
+      { title: "Taylor Swift", image: "https://i.scdn.co/image/ab6761610000e5eb5a00969a4698c3132a15fbb0" },
+      { title: "Ed Sheeran", image: "https://i.scdn.co/image/ab6761610000e5eb12a2ef08d00dd7451a6dbed6" },
+      { title: "Shreya Ghoshal", image: "https://i.scdn.co/image/ab6761610000e5ebf89cf29654159f81df69c3c1" }
+    ];
+    const ERAS_POOL = [
+      { title: "90s Romance", subtitle: "Kumar Sanu" },
+      { title: "2000s Pop", subtitle: "Shaan, KK" },
+      { title: "80s Disco", subtitle: "Bappi Lahiri" },
+      { title: "Classic 70s", subtitle: "Rafi & Kishore" },
+      { title: "60s Melodies", subtitle: "Lata Mangeshkar" },
+      { title: "2010s Hits", subtitle: "Arijit & Neha" }
+    ];
+
     setTrendingSongs([...TRENDING_POOL].sort(() => 0.5 - Math.random()).slice(0, 6));
     setHitsReloaded([...HITS_RELOADED_POOL].sort(() => 0.5 - Math.random()).slice(0, 2));
+    setMonsoonMagic(MONSOON_POOL);
+    setJulyTopArtists(JULY_ARTISTS_POOL);
+    setHitsByEras([...ERAS_POOL].sort(() => 0.5 - Math.random()).slice(0, 2));
 
     const updateTime = () => {
       const now = new Date();
@@ -346,6 +375,64 @@ export default function HomePage() {
           </div>
           <div className="grid-2col">
             {hitsReloaded.map((hit, i) => (
+              <div key={`${hit.title}-${i}`} className="grid-card">
+                <img 
+                  src={`https://picsum.photos/seed/${encodeURIComponent(hit.title)}/100/100`} 
+                  alt={hit.title} 
+                  className="thumb" 
+                  style={{ objectFit: 'cover' }} 
+                />
+                <div className="flex-col">
+                  <span className="card-title">{hit.title}</span>
+                  <span className="card-subtitle">{hit.subtitle}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="section-header" style={{ marginTop: '12px' }}>
+            <span className="section-title">MONSOON MAGIC</span>
+            <button className="section-action pill-btn">
+              <Play size={8} fill="currentColor" /> Play All
+            </button>
+          </div>
+          <div className="trending-row">
+            {monsoonMagic.map((hit, i) => (
+              <div key={`${hit.title}-${i}`} className="trending-item">
+                <img 
+                  src={`https://picsum.photos/seed/${encodeURIComponent(hit.title)}/200/200`} 
+                  alt={hit.title} 
+                  className="trending-thumb" 
+                />
+                <span className="trending-title">{hit.title}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="section-header" style={{ marginTop: '12px' }}>
+            <span className="section-title">JULY TOP ARTISTS</span>
+            <button className="section-action pill-btn">View All</button>
+          </div>
+          <div className="trending-row">
+            {julyTopArtists.map((hit, i) => (
+              <div key={`${hit.title}-${i}`} className="trending-item">
+                <img 
+                  src={hit.image || `https://picsum.photos/seed/${encodeURIComponent(hit.title)}/200/200`} 
+                  alt={hit.title} 
+                  className="trending-thumb" 
+                  style={{ borderRadius: '50%' }}
+                />
+                <span className="trending-title" style={{ textAlign: 'center' }}>{hit.title}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="section-header" style={{ marginTop: '12px' }}>
+            <span className="section-title">HITS BY ERAS</span>
+            <button className="section-action pill-btn">View All</button>
+          </div>
+          <div className="grid-2col">
+            {hitsByEras.map((hit, i) => (
               <div key={`${hit.title}-${i}`} className="grid-card">
                 <img 
                   src={`https://picsum.photos/seed/${encodeURIComponent(hit.title)}/100/100`} 
