@@ -145,84 +145,82 @@ export default function HomePage() {
     }
   };
 
-  const handleSongListen = () => {
+  const handleSongListen = async () => {
     triggerHaptic(50);
     
     if (isListening) {
-      // Stop early if already listening
-      if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
-        mediaRecorderRef.current = null;
       }
-      setIsListening(false);
-      setListenCountdown(0);
-      setListenStatus("");
       return;
     }
-
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Speech recognition is not supported in this browser. Try Chrome.");
-      return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    mediaRecorderRef.current = recognition; // reuse ref for stop control
-
-    recognition.lang = 'en-IN';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    let finalTranscript = '';
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setIsSeedMode(true);
-      setQuery("");
-      setListenStatus("🎤 Sing or say lyrics...");
-    };
-
-    recognition.onresult = (event) => {
-      let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript + ' ';
-        } else {
-          interim += event.results[i][0].transcript;
-        }
-      }
-      // Show real-time lyrics in the search box
-      setQuery((finalTranscript + interim).trim());
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-      if (event.error === 'not-allowed') {
-        alert("Microphone access was blocked! Please allow mic access in your browser settings.");
-      } else if (event.error !== 'no-speech') {
-        setListenStatus("Voice error. Try again.");
-        setTimeout(() => setListenStatus(""), 3000);
-      }
-      setIsListening(false);
-      setListenCountdown(0);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      setListenCountdown(0);
-      if (finalTranscript.trim()) {
-        setListenStatus("Lyrics captured! Tap Find ✦ to discover songs");
-        setTimeout(() => setListenStatus(""), 4000);
-      } else {
-        setListenStatus("Couldn't catch anything. Try singing louder.");
-        setTimeout(() => setListenStatus(""), 3000);
-      }
-    };
 
     try {
-      recognition.start();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-      // 15 second countdown timer
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        setIsListening(false);
+        setListenCountdown(0);
+        setIsIdentifying(true);
+        setListenStatus("Identifying your song...");
+
+        try {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const reader = new FileReader();
+          const base64Promise = new Promise((resolve) => {
+            reader.onloadend = () => {
+              resolve(reader.result.split(',')[1]);
+            };
+          });
+          reader.readAsDataURL(audioBlob);
+          const audioBase64 = await base64Promise;
+
+          const res = await fetch('/api/identify-song', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audioBase64, mimeType: 'audio/webm' })
+          });
+          const data = await res.json();
+
+          if (data.identified && data.song) {
+            triggerHaptic([30, 50, 30]);
+            setIsSeedMode(true);
+            setQuery(`${data.song} — ${data.artist}`);
+            setListenStatus(`Found: ${data.song} by ${data.artist} ✓`);
+            setTimeout(() => setListenStatus(""), 3000);
+          } else if (data.vibe && data.vibe !== 'unclear') {
+            triggerHaptic([30, 30]);
+            setIsSeedMode(false);
+            setQuery(data.vibe);
+            setListenStatus("Couldn't name it, but captured the vibe!");
+            setTimeout(() => setListenStatus(""), 3000);
+          } else {
+            setListenStatus("Couldn't catch that. Try singing louder or hold closer to speaker.");
+            setTimeout(() => setListenStatus(""), 4000);
+          }
+        } catch (err) {
+          console.error("Identification failed:", err);
+          setListenStatus("Something went wrong. Try again.");
+          setTimeout(() => setListenStatus(""), 3000);
+        } finally {
+          setIsIdentifying(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsListening(true);
+      setListenStatus("Listening... sing or play a song");
+      
       let countdown = 15;
       setListenCountdown(countdown);
       const countdownInterval = setInterval(() => {
@@ -230,12 +228,19 @@ export default function HomePage() {
         setListenCountdown(countdown);
         if (countdown <= 0) {
           clearInterval(countdownInterval);
-          recognition.stop();
-          mediaRecorderRef.current = null;
+          if (mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+          }
         }
       }, 1000);
-    } catch (e) {
-      console.error("Recognition start error:", e);
+
+    } catch (err) {
+      console.error("Mic access error:", err);
+      if (err.name === 'NotAllowedError') {
+        alert("Microphone access was blocked! Please allow mic access in your browser settings.");
+      } else {
+        alert("Could not access microphone: " + err.message);
+      }
       setIsListening(false);
     }
   };

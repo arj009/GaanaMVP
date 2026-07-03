@@ -33,8 +33,8 @@ export async function POST(req) {
 Your job: Identify the song.
 
 IMPORTANT RULES:
-- Pay very close attention to the LYRICS being sung. Match them to known Bollywood, Hindi, Punjabi, or English songs.
-- Even if the singing is off-key or partial, try to match the lyrics to a real song.
+- If a song is playing from a speaker, analyze the melody, beat, instruments, and vocals to identify the track. You have deep knowledge of acoustics and music.
+- If a human is singing/humming, pay very close attention to the LYRICS and MELODY to match it to known Bollywood, Hindi, Punjabi, or English songs.
 - If you hear someone speaking a song name (e.g. "Tum Hi Ho" or "Shape of You"), identify that song directly.
 - If you can identify the song, return ONLY a JSON object: {"identified": true, "song": "Song Name", "artist": "Artist Name", "confidence": "high/medium/low"}
 - If you can hear music but can't identify it confidently, describe the vibe: {"identified": false, "vibe": "describe the mood, tempo, genre, instruments you hear", "confidence": "low"}
