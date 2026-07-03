@@ -260,7 +260,6 @@ export default function HomePage() {
           Gaana
         </div>
         <div className="header-actions">
-          <Search size={20} />
           <Bell size={20} />
         </div>
       </header>
@@ -457,7 +456,7 @@ export default function HomePage() {
         </div>
         <div className="nav-item">
           <Search size={20} />
-          <span>Search</span>
+          <span>Explore</span>
         </div>
         <div className="nav-item">
           <Library size={20} />
