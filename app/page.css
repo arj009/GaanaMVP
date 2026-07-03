@@ -276,7 +276,7 @@
 .grid-3col {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
 .trending-item {
@@ -288,7 +288,7 @@
 .trending-thumb {
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 8px;
+  border-radius: 6px;
   background-color: #333;
 }
 
@@ -361,6 +361,230 @@
   border: 0.5px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(231, 44, 44, 0.4);
+  color: white;
+  box-shadow: 0 0 8px rgba(231, 44, 44, 0.15);
+  transform: translateY(-1px);
+}
+
+.chip:active {
+  transform: scale(0.96);
+  transition: transform 0.1s;
+}
+
+.chip.active {
+  border-color: var(--accent-red);
+  color: white;
+  background: linear-gradient(135deg, rgba(231, 44, 44, 0.15), rgba(255, 120, 50, 0.1));
+  box-shadow: 0 0 10px rgba(231, 44, 44, 0.2);
+}
+
+.chip.recording {
+  background: linear-gradient(135deg, rgba(231, 44, 44, 0.2), rgba(255, 80, 80, 0.15));
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  animation: chip-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes chip-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(231, 44, 44, 0.2); }
+  50% { box-shadow: 0 0 14px rgba(231, 44, 44, 0.4); }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.chip-icon {
+  color: var(--accent-red);
+}
+
+.dimmed-sections {
+  opacity: 0.75;
+  padding: 16px 12px;
+  pointer-events: none;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  color: #eee;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.section-action.pill-btn {
+  color: white;
+  font-size: 7px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 4px 8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.2s ease;
+}
+
+.section-action.pill-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.pills-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: hidden;
+}
+
+.pill {
+  background-color: var(--card-bg);
+  border: 0.5px solid var(--card-border);
+  border-radius: 20px;
+  color: #666;
+  font-size: 8px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.grid-card {
+  background-color: var(--card-bg);
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+.color-1 { background: linear-gradient(135deg, #FF416C, #FF4B2B); }
+.color-2 { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.color-3 { background: linear-gradient(135deg, #4b6cb7, #182848); }
+.color-4 { background: linear-gradient(135deg, #F09819, #EDDE5D); }
+
+.card-title {
+  color: #666;
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.card-subtitle {
+  color: #444;
+  font-size: 7px;
+}
+
+.grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.trending-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.trending-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background-color: #333;
+  object-fit: cover;
+}
+
+.trending-title {
+  color: white;
+  font-size: 8px;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.gradient-1 { background: linear-gradient(135deg, #2c3e50, #3498db); }
+.gradient-2 { background: linear-gradient(135deg, #1e130c, #9a8478); }
+.gradient-3 { background: linear-gradient(135deg, #141e30, #243b55); }
+.gradient-4 { background: linear-gradient(135deg, #42275a, #734b6d); }
+
+/* ── Listen (Hum or Play) Chip States ── */
+.listen-chip {
+  gap: 5px !important;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.listen-icon {
+  font-size: 11px;
+}
+
+.listen-chip.listening {
+  background: linear-gradient(135deg, rgba(231, 44, 44, 0.25), rgba(255, 80, 80, 0.15)) !important;
+  border-color: var(--accent-red) !important;
+  color: white !important;
+  animation: chip-glow 1s ease-in-out infinite;
+}
+
+.listen-pulse {
+  color: var(--accent-red);
+  font-size: 10px;
+  animation: listenPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes listenPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.7); }
+}
+
+.listen-chip.identifying {
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(243, 156, 18, 0.08)) !important;
+  border-color: rgba(243, 156, 18, 0.4) !important;
+  color: #f39c12 !important;
+}
+
+.identify-spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  font-size: 11px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── Listen Status Bar ── */
+.listen-status {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 8px;
   text-align: center;
   animation: fadeInUp 0.3s ease;
@@ -369,4 +593,47 @@
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.trending-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+.trending-row::-webkit-scrollbar {
+  display: none;
+}
+.trending-row .trending-item {
+  flex: 0 0 22%;
+}
+
+.vibe-prompts-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+.vibe-prompts-scroll::-webkit-scrollbar {
+  display: none;
+}
+.vibe-prompt-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #ddd;
+  font-size: 8px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.vibe-prompt-btn:hover {
+  background: rgba(231, 44, 44, 0.15);
+  border-color: var(--accent-red);
+  color: white;
 }

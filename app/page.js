@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Bell, Home, Library, User, Music, Mic } from "lucide-react";
+import { Search, Bell, Home, Library, User, Music, Mic, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { triggerHaptic } from "@/lib/haptics";
 import "./page.css";
@@ -14,7 +14,7 @@ export default function HomePage() {
   const [query, setQuery] = useState("");
   const [isSeedMode, setIsSeedMode] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [greeting, setGreeting] = useState("Good Day Aunkar ! 👋");
+  const [greeting, setGreeting] = useState("Hey Good Day ! 👋");
   const [currentTime, setCurrentTime] = useState("9:41");
   const [isListening, setIsListening] = useState(false);
   const [listenCountdown, setListenCountdown] = useState(0);
@@ -23,12 +23,30 @@ export default function HomePage() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
+  const [trendingSongs, setTrendingSongs] = useState(["mahooqa", "sadi sun", "boom shaka", "on the floor", "ban ja tu", "rasputin"]);
+  const [hitsReloaded, setHitsReloaded] = useState([
+    { title: "90s Romance", subtitle: "Udit Narayan & Alka", color: "color-4" },
+    { title: "Retro Party", subtitle: "Kishore Kumar Hits", color: "color-3" }
+  ]);
+
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Good Morning Aunkar ! 🌅");
-    else if (hour < 17) setGreeting("Good Afternoon Aunkar ! ☀️");
-    else if (hour < 21) setGreeting("Good Evening Aunkar ! 🌆");
-    else setGreeting("Good Night Aunkar ! 🌙");
+    if (hour < 12) setGreeting("Hey Good Morning ! 🌅");
+    else if (hour < 17) setGreeting("Hey Good Afternoon ! ☀️");
+    else if (hour < 21) setGreeting("Hey Good Evening ! 🌆");
+    else setGreeting("Hey Good Night ! 🌙");
+
+    const TRENDING_POOL = ["mahooqa", "sadi sun", "boom shaka", "on the floor", "ban ja tu", "rasputin", "chaleya", "tum hi ho", "kesariya", "jhoome jo pathaan", "apna bana le", "channa mereya", "saami saami", "maan meri jaan", "jalebi baby"];
+    const HITS_RELOADED_POOL = [
+      { title: "90s Romance", subtitle: "Udit Narayan & Alka", color: "color-4" },
+      { title: "Retro Party", subtitle: "Kishore Kumar Hits", color: "color-3" },
+      { title: "Sufi Evenings", subtitle: "Nusrat & Rahat", color: "color-1" },
+      { title: "Indie Pop", subtitle: "Lucky Ali & Euphoria", color: "color-2" },
+      { title: "Classic Duets", subtitle: "Lata & Rafi", color: "color-3" },
+      { title: "Golden Era", subtitle: "Mukesh & Asha", color: "color-4" },
+    ];
+    setTrendingSongs([...TRENDING_POOL].sort(() => 0.5 - Math.random()).slice(0, 6));
+    setHitsReloaded([...HITS_RELOADED_POOL].sort(() => 0.5 - Math.random()).slice(0, 2));
 
     const updateTime = () => {
       const now = new Date();
@@ -286,57 +304,61 @@ export default function HomePage() {
         </div>
 
         <div className="dimmed-sections">
-          <div className="section-title">TOP CHARTS</div>
-          <div className="pills-scroll">
-            {["Hindi Top 50", "Punjabi All Time 50", "English Top 50", "Bollywood Top 50"].map(pill => (
-              <span key={pill} className="pill">{pill}</span>
+          <div className="section-header">
+            <span className="section-title">TOP CHARTS</span>
+            <button className="section-action pill-btn">View All</button>
+          </div>
+          <div className="trending-row">
+            {["Hindi Top 50", "Punjabi All Time", "English Top 50", "Bollywood Top 50"].map((chart) => (
+              <div key={chart} className="trending-item">
+                <img 
+                  src={`https://picsum.photos/seed/${encodeURIComponent(chart)}/200/200`} 
+                  alt={chart} 
+                  className="trending-thumb" 
+                />
+                <span className="trending-title">{chart}</span>
+              </div>
             ))}
           </div>
 
-          <div className="section-title" style={{ marginTop: '20px' }}>MADE FOR YOU</div>
-          <div className="grid-2col">
-            <div className="grid-card">
-              <div className="thumb color-1"></div>
-              <div className="flex-col">
-                <span className="card-title">Your Daily Mix</span>
-                <span className="card-subtitle">Arijit, Jubin, KK</span>
-              </div>
-            </div>
-            <div className="grid-card">
-              <div className="thumb color-2"></div>
-              <div className="flex-col">
-                <span className="card-title">Mood Booster</span>
-                <span className="card-subtitle">Based on your taste</span>
-              </div>
-            </div>
+          <div className="section-header" style={{ marginTop: '12px' }}>
+            <span className="section-title">TRENDING SONGS</span>
+            <button className="section-action pill-btn">
+              <Play size={8} fill="currentColor" /> Play All
+            </button>
           </div>
-
-          <div className="section-title" style={{ marginTop: '20px' }}>TRENDING SONGS</div>
-          <div className="grid-3col">
-            {["mahooqa", "sadi sun", "boom shaka", "on the floor", "ban ja tu", "rasputin"].map((song, i) => (
-              <div key={song} className="trending-item">
-                <div className={`trending-thumb gradient-${(i % 4) + 1}`}></div>
+          <div className="trending-row">
+            {trendingSongs.map((song, i) => (
+              <div key={`${song}-${i}`} className="trending-item">
+                <img 
+                  src={`https://picsum.photos/seed/${encodeURIComponent(song)}/200/200`} 
+                  alt={song} 
+                  className="trending-thumb" 
+                />
                 <span className="trending-title">{song}</span>
               </div>
             ))}
           </div>
 
-          <div className="section-title" style={{ marginTop: '20px' }}>HITS RELOADED</div>
+          <div className="section-header" style={{ marginTop: '12px' }}>
+            <span className="section-title">HITS RELOADED</span>
+            <button className="section-action pill-btn">View All</button>
+          </div>
           <div className="grid-2col">
-            <div className="grid-card">
-              <div className="thumb color-4"></div>
-              <div className="flex-col">
-                <span className="card-title">90s Romance</span>
-                <span className="card-subtitle">Udit Narayan & Alka</span>
+            {hitsReloaded.map((hit, i) => (
+              <div key={`${hit.title}-${i}`} className="grid-card">
+                <img 
+                  src={`https://picsum.photos/seed/${encodeURIComponent(hit.title)}/100/100`} 
+                  alt={hit.title} 
+                  className="thumb" 
+                  style={{ objectFit: 'cover' }} 
+                />
+                <div className="flex-col">
+                  <span className="card-title">{hit.title}</span>
+                  <span className="card-subtitle">{hit.subtitle}</span>
+                </div>
               </div>
-            </div>
-            <div className="grid-card">
-              <div className="thumb color-3"></div>
-              <div className="flex-col">
-                <span className="card-title">Retro Party</span>
-                <span className="card-subtitle">Kishore Kumar Hits</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </main>
