@@ -132,6 +132,7 @@ export default function HomePage() {
 
     recognition.onstart = () => {
       setIsRecording(true);
+      setIsSeedMode(false); // Voice is for general vibe queries, not strict song seeds
       setQuery("");
       setListenStatus("🎤 Listening... Speak or sing your vibe");
     };
