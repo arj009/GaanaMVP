@@ -3,7 +3,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /**
  * Song Identification API
- * Accepts recorded audio (base64) and uses Gemini to identify the song.
+ * Accepts recorded audio (base64) and uses AudD (ACR) for exact matches,
+ * falling back to Gemini for vibe/lyrics identification.
  */
 export async function POST(req) {
   try {
@@ -14,6 +15,40 @@ export async function POST(req) {
       return NextResponse.json({ error: "No audio data provided" }, { status: 400 });
     }
 
+    // 1. Try AudD.io for exact acoustic fingerprinting match
+    if (process.env.AUDD_API_KEY) {
+      console.log("[Song ID] Trying AudD.io exact match...");
+      try {
+        const formData = new URLSearchParams();
+        formData.append('api_token', process.env.AUDD_API_KEY);
+        formData.append('audio', audioBase64);
+        
+        const auddRes = await fetch('https://api.audd.io/', {
+          method: 'POST',
+          body: formData,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+        const auddData = await auddRes.json();
+        
+        if (auddData.status === 'success' && auddData.result) {
+          console.log(`[Song ID] AudD Match Found:`, auddData.result.title);
+          return NextResponse.json({
+            identified: true,
+            song: auddData.result.title,
+            artist: auddData.result.artist,
+            confidence: "high"
+          });
+        }
+        console.log("[Song ID] AudD found no exact match. Falling back to Gemini...");
+      } catch (err) {
+        console.error("[Song ID] AudD API error:", err);
+      }
+    } else {
+      console.log("[Song ID] No AUDD_API_KEY found, skipping exact match...");
+    }
+
+    // 2. Fallback: Use Gemini for lyrics extraction and vibe matching
+    console.log("[Song ID] Using Gemini for audio analysis fallback...");
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ 
       model: "gemini-2.5-flash",

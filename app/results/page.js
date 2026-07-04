@@ -296,9 +296,12 @@ function ResultsContent() {
         )}
 
         {isAudioFailed && (
-          <div className="empty-state" style={{margin: '12px', padding: '16px', background: 'rgba(255, 65, 108, 0.1)', border: '1px solid rgba(255, 65, 108, 0.3)', borderRadius: '12px'}}>
-            <h3 style={{color: 'white', fontSize: '14px', marginBottom: '8px'}}>Couldn&apos;t identify exact match</h3>
-            <p style={{color: '#aaa', fontSize: '10px'}}>But we captured the vibe! Here are some songs with a similar feel.</p>
+          <div style={{margin: '12px', padding: '10px 12px', background: 'rgba(255, 65, 108, 0.1)', border: '1px solid rgba(255, 65, 108, 0.3)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px'}}>
+            <span style={{fontSize: '18px'}}>✨</span>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '2px'}}>
+              <span style={{color: 'white', fontSize: '11px', fontWeight: '600'}}>Couldn&apos;t identify exact match</span>
+              <span style={{color: '#aaa', fontSize: '9px'}}>But we captured the vibe! Here are some songs with a similar feel.</span>
+            </div>
           </div>
         )}
 
