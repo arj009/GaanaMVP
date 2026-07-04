@@ -240,13 +240,10 @@ export default function HomePage() {
 
           if (data.identified && data.song) {
             triggerHaptic([30, 50, 30]);
-            setQuery(`${data.song} — ${data.artist}`);
-            setListenStatus(`Found: ${data.song} ✓`);
-            setTimeout(() => setListenStatus(""), 3000);
+            router.push(`/results?q=${encodeURIComponent(data.song + " by " + data.artist)}&mode=audio&identified=true&song=${encodeURIComponent(data.song)}&artist=${encodeURIComponent(data.artist)}`);
           } else if (data.vibe && data.vibe !== 'unclear') {
-            setQuery(data.vibe);
-            setListenStatus("Couldn't name it exactly, but captured the vibe!");
-            setTimeout(() => setListenStatus(""), 3000);
+            triggerHaptic([30, 50, 30]);
+            router.push(`/results?q=${encodeURIComponent(data.vibe)}&mode=audio&identified=false`);
           } else {
             setListenStatus("Couldn't identify. Try again.");
             setTimeout(() => setListenStatus(""), 4000);

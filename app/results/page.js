@@ -23,6 +23,10 @@ function ResultsContent() {
   const [isRediscovering, setIsRediscovering] = useState(false);
   const [showNudge, setShowNudge] = useState(false);
 
+  const mode = searchParams.get('mode');
+  const isAudioIdentified = mode === 'audio' && searchParams.get('identified') === 'true';
+  const isAudioFailed = mode === 'audio' && searchParams.get('identified') === 'false';
+
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -283,11 +287,24 @@ function ResultsContent() {
         </div>
 
         {/* Nudge tooltip */}
-        {showNudge && (
+        {showNudge && !isAudioIdentified && !isAudioFailed && (
           <div className="nudge-tooltip" onClick={() => setShowNudge(false)}>
             <span className="nudge-emoji">👎</span>
             <span className="nudge-text">Don&apos;t vibe with a song? Tap the thumbs down to remove it. We&apos;ll learn your taste!</span>
             <span className="nudge-dismiss">Got it</span>
+          </div>
+        )}
+
+        {isAudioFailed && (
+          <div className="empty-state" style={{margin: '12px', padding: '16px', background: 'rgba(255, 65, 108, 0.1)', border: '1px solid rgba(255, 65, 108, 0.3)', borderRadius: '12px'}}>
+            <h3 style={{color: 'white', fontSize: '14px', marginBottom: '8px'}}>Couldn&apos;t identify exact match</h3>
+            <p style={{color: '#aaa', fontSize: '10px'}}>But we captured the vibe! Here are some songs with a similar feel.</p>
+          </div>
+        )}
+
+        {isAudioIdentified && songs.length > 0 && (
+          <div className="section-header" style={{marginTop: '20px', padding: '0 12px'}}>
+            <span className="section-title" style={{color: '#FF416C', fontSize: '11px', letterSpacing: '1px'}}>🎶 IDENTIFIED SONG</span>
           </div>
         )}
 
@@ -325,7 +342,8 @@ function ResultsContent() {
             </div>
           ) : (
             songs.map((song, i) => (
-              <div id={`song-card-${i}`} key={i} className={`song-card ${playingIndex === i ? 'playing' : ''} ${rejectedSongs.includes(song.song) ? 'dismissed' : ''}`}>
+              <>
+              <div id={`song-card-${i}`} key={i} className={`song-card ${playingIndex === i ? 'playing' : ''} ${rejectedSongs.includes(song.song) ? 'dismissed' : ''} ${isAudioIdentified && i === 0 ? 'identified-highlight' : ''}`}>
                 <div className="song-top-row">
                   {song.artwork_url ? (
                     <img src={song.artwork_url} className="song-thumb" alt={song.song} />
@@ -371,6 +389,13 @@ function ResultsContent() {
                 ))}
               </div>
             </div>
+            
+            {isAudioIdentified && i === 0 && (
+              <div className="section-header" style={{marginTop: '24px', marginBottom: '12px', padding: '0 12px'}}>
+                <span className="section-title" style={{color: '#aaa', fontSize: '11px', letterSpacing: '1px'}}>🎧 SIMILAR VIBES</span>
+              </div>
+            )}
+            </>
             ))
           )}
         </div>
