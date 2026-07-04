@@ -15,7 +15,12 @@ export async function POST(req) {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json"
+      }
+    });
 
     const result = await model.generateContent([
       {
@@ -48,14 +53,7 @@ IMPORTANT RULES:
     // Parse the response
     let parsed;
     try {
-      const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
-      const startIndex = cleaned.indexOf('{');
-      const endIndex = cleaned.lastIndexOf('}');
-      if (startIndex >= 0 && endIndex >= 0) {
-        parsed = JSON.parse(cleaned.substring(startIndex, endIndex + 1));
-      } else {
-        parsed = JSON.parse(cleaned);
-      }
+      parsed = JSON.parse(text);
     } catch (e) {
       console.error("Failed to parse Gemini song ID response:", text);
       return NextResponse.json({ 

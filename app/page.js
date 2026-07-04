@@ -203,7 +203,20 @@ export default function HomePage() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      let mimeType = 'audio/webm';
+      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported) {
+        if (MediaRecorder.isTypeSupported('audio/webm')) {
+          mimeType = 'audio/webm';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+          mimeType = 'audio/ogg';
+        } else if (MediaRecorder.isTypeSupported('audio/aac')) {
+          mimeType = 'audio/aac';
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
       mediaRecorder.ondataavailable = (event) => {
@@ -223,7 +236,7 @@ export default function HomePage() {
         setListenStatus("Identifying music...");
         
         try {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
           const reader = new FileReader();
           const base64Promise = new Promise((resolve) => {
             reader.onloadend = () => resolve(reader.result.split(',')[1]);
@@ -234,7 +247,7 @@ export default function HomePage() {
           const res = await fetch('/api/identify-song', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ audioBase64, mimeType: 'audio/webm' })
+            body: JSON.stringify({ audioBase64, mimeType })
           });
           const data = await res.json();
 

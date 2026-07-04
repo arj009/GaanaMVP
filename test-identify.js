@@ -1,0 +1,34 @@
+require('dotenv').config({ path: '.env.local' });
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+async function run() {
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  try {
+    const audioBuffer = await (await fetch('https://filesamples.com/samples/audio/mp3/sample3.mp3')).arrayBuffer();
+    const base64 = Buffer.from(audioBuffer).toString('base64');
+    
+    const prompt = `Listen to this audio carefully. Someone is either:
+1. Singing or humming lyrics of a song
+2. Playing a song from a speaker/phone
+3. Speaking a song name out loud
+
+Your job: Identify the song.
+
+IMPORTANT RULES:
+- If a song is playing from a speaker, analyze the melody, beat, instruments, and vocals to identify the track. You have deep knowledge of acoustics and music.
+- If a human is singing/humming, pay very close attention to the LYRICS and MELODY to match it to known Bollywood, Hindi, Punjabi, or English songs.
+- If you can confidently identify the song, return ONLY a JSON object: {"identified": true, "song": "Song Name", "artist": "Artist Name", "confidence": "high/medium/low"}
+- If you CANNOT identify the exact song name, but you hear vocals, TRANSCRIBE THE LYRICS EXACTLY as they are sung. Return: {"identified": false, "vibe": "the transcribed lyrics you heard", "confidence": "low"}
+- If there are absolutely no vocals and you cannot identify it, describe the musical vibe: {"identified": false, "vibe": "upbeat acoustic guitar with fast tabla beats", "confidence": "low"}
+- If the audio is silent or just noise: {"identified": false, "vibe": "unclear", "confidence": "none"}
+- Return ONLY the raw JSON. No markdown, no explanation.`;
+
+    const res = await model.generateContent([{ inlineData: { mimeType: 'audio/mp3', data: base64 } }, { text: prompt }]);
+    console.log("RESPONSE:", res.response.text());
+  } catch (e) {
+    console.error('ERROR:', e);
+  }
+}
+
+run();
