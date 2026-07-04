@@ -238,7 +238,10 @@ export default function HomePage() {
           });
           const data = await res.json();
 
-          if (data.identified && data.song) {
+          if (data.error) {
+            setListenStatus(data.vibe || "Couldn't identify. Try again.");
+            setTimeout(() => setListenStatus(""), 4000);
+          } else if (data.identified && data.song) {
             triggerHaptic([30, 50, 30]);
             router.push(`/results?q=${encodeURIComponent(data.song + " by " + data.artist)}&mode=audio&identified=true&song=${encodeURIComponent(data.song)}&artist=${encodeURIComponent(data.artist)}`);
           } else if (data.vibe && data.vibe !== 'unclear') {
