@@ -127,7 +127,10 @@ SUPABASE_SERVICE_KEY=eyJhbGci...
 7. Add Web Speech API voice input
 
 ### Phase 2.5 — Data Pipeline + Vector DB (Pinecone) [COMPLETED]
-1. Source music metadata dataset (Kaggle Audio Features, Spotify Catalog, Hindi Lyrics)
+1. Source music metadata datasets:
+   - [Kaggle Audio Features (Songs Dataset)](https://www.kaggle.com/datasets/unnatgupta/songs-dataset)
+   - [Spotify Indian Music Catalog](https://www.kaggle.com/datasets/dipansujoshi/indian-songs-spotify-dataset)
+   - [Indian Hindi Songs Lyrics Dataset](https://www.kaggle.com/datasets/makvel/indian-hindi-songs-lyrics-dataset/versions/2/code)
 2. Write embedding ingestion script to vectorize song metadata (with feature engineering numericals -> text)
 3. Upload embeddings to Pinecone free-tier index (gaana-vibe-search, 3072 dim)
 4. Integrate Pinecone similarity search into `/api/vibe-search` as an augmentation layer
