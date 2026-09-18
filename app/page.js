@@ -34,10 +34,10 @@ export default function HomePage() {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Hey, Good Morning ! 🌅");
-    else if (hour < 17) setGreeting("Hey, Good Afternoon ! ☀️");
-    else if (hour < 21) setGreeting("Hey, Good Evening ! 🌆");
-    else setGreeting("Hey, Good Night ! 🌙");
+    if (hour < 12) setGreeting("Hey, Good Morning Aunkar ! 🌅");
+    else if (hour < 17) setGreeting("Hey, Good Afternoon Aunkar ! ☀️");
+    else if (hour < 21) setGreeting("Hey, Good Evening Aunkar ! 🌆");
+    else setGreeting("Hey, Good Night Aunkar ! 🌙");
 
     const TRENDING_POOL = ["mahooqa", "sadi sun", "boom shaka", "on the floor", "ban ja tu", "rasputin", "chaleya", "tum hi ho", "kesariya", "jhoome jo pathaan", "apna bana le", "channa mereya", "saami saami", "maan meri jaan", "jalebi baby"];
     const HITS_RELOADED_POOL = [
